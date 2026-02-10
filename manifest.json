@@ -1,7 +1,7 @@
 {
-  "name": "Horarios Profesores",
-  "short_name": "Horarios",
-  "description": "Consulta rápida de horarios de profesores",
+  "name": "App ECE",
+  "short_name": "ECE",
+  "description": "Eines Cap Estudis",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
