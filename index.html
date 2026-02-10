@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7B1C2E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Eina Cap Estudis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons: icones modernes, monocromes, professionals -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <!-- ── CAPÇALERA FIXA ─────────────────────────────────────── -->
+    <header id="app-header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <button class="header-logo" id="btn-menu-logo" title="Menú">CE</button>
+                <div class="header-titles">
+                    <h1>Eina Cap Estudis</h1>
+                    <span class="header-sub">SMA 2025-26</span>
+                </div>
+            </div>
+            <button id="btn-home" class="btn-home" title="Inici" aria-label="Inici">
+                <i class="ph ph-house-simple"></i>
+            </button>
+        </div>
+        <!-- Menú desplegable del logo -->
+        <div id="menu-logo" class="menu-dropdown hidden">
+            <button class="menu-item" data-action="suplencies">
+                <i class="ph ph-clipboard-text"></i>
+                Mostrar suplències
+            </button>
+        </div>
+    </header>
+
+    <!-- ── CONTINGUT PRINCIPAL ────────────────────────────────── -->
+    <main id="app-main">
+
+        <!-- VISTA: INICI (botons) -->
+        <section id="view-home" class="view active">
+            <div class="button-grid">
+
+                <button class="action-btn" data-view="ara">
+                    <i class="ph ph-clock"></i>
+                    <span>Qui fa classe ara?</span>
+                </button>
+
+                <button class="action-btn" data-view="hora">
+                    <i class="ph ph-calendar-blank"></i>
+                    <span>Qui fa classe / hora?</span>
+                </button>
+
+                <button class="action-btn" data-view="professor">
+                    <i class="ph ph-user"></i>
+                    <span>Horari Professor</span>
+                </button>
+
+                <button class="action-btn" data-view="curs">
+                    <i class="ph ph-graduation-cap"></i>
+                    <span>Horari Curs</span>
+                </button>
+
+            </div>
+        </section>
+
+        <!-- VISTA: QUI FA CLASSE ARA -->
+        <section id="view-ara" class="view">
+            <div class="view-header">
+                <h2><i class="ph ph-clock"></i> Qui fa classe ara?</h2>
+            </div>
+            <div class="filter-row">
+                <div class="input-wrap">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="input-ara" placeholder="Filtrar per nom de professor (opcional)..." autocomplete="off" list="list-professors-ara">
+                    <datalist id="list-professors-ara"></datalist>
+                </div>
+            </div>
+            <div id="results-ara" class="results"></div>
+        </section>
+
+        <!-- VISTA: QUI FA CLASSE / HORA -->
+        <section id="view-hora" class="view">
+            <div class="view-header">
+                <h2><i class="ph ph-calendar-blank"></i> Qui fa classe / hora?</h2>
+            </div>
+            <div class="selector-grid">
+                <div class="field-group">
+                    <label for="sel-dia">Dia</label>
+                    <select id="sel-dia">
+                        <option value="DILLUNS">Dilluns</option>
+                        <option value="DIMARTS">Dimarts</option>
+                        <option value="DIMECRES">Dimecres</option>
+                        <option value="DIJOUS">Dijous</option>
+                        <option value="DIVENDRES">Divendres</option>
+                        <option value="DISSABTE">Dissabte</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="sel-hora">Hora</label>
+                    <select id="sel-hora">
+                        <option value="8:00">8:00</option>
+                        <option value="9:00">9:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:30">11:30</option>
+                        <option value="12:30">12:30</option>
+                        <option value="13:30">13:30</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:30">18:30</option>
+                        <option value="19:30">19:30</option>
+                        <option value="20:30">20:30</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-row" style="margin-bottom:16px">
+                <div class="input-wrap">
+                    <i class="ph ph-user"></i>
+                    <input type="text" id="input-hora-prof" placeholder="Filtrar per nom de professor (opcional)..." autocomplete="off" list="list-professors-hora">
+                    <datalist id="list-professors-hora"></datalist>
+                </div>
+            </div>
+            <button id="btn-buscar-hora" class="btn-search-full">
+                <i class="ph ph-magnifying-glass"></i> Cercar
+            </button>
+            <div id="results-hora" class="results"></div>
+        </section>
+
+        <!-- VISTA: HORARI PROFESSOR -->
+        <section id="view-professor" class="view">
+            <div class="view-header">
+                <h2><i class="ph ph-user"></i> Horari Professor</h2>
+            </div>
+            <div class="filter-row">
+                <div class="input-wrap">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="input-professor" placeholder="Escriu el nom del professor..." autocomplete="off" list="list-professors-all">
+                    <datalist id="list-professors-all"></datalist>
+                </div>
+            </div>
+            <div id="results-professor" class="results"></div>
+        </section>
+
+        <!-- VISTA: HORARI CURS -->
+        <section id="view-curs" class="view">
+            <div class="view-header">
+                <h2><i class="ph ph-graduation-cap"></i> Horari Curs</h2>
+            </div>
+
+            <!-- Selector desplegable -->
+            <div class="filter-row">
+                <div class="input-wrap">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <select id="sel-curs" style="flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;padding:13px 0;background:transparent;color:var(--text);cursor:pointer;">
+                        <option value="">Selecciona un curs...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Resultats -->
+            <div id="results-curs" class="results"></div>
+        </section>
+
+        <!-- VISTA: SUPLÈNCIES -->
+        <section id="view-suplencies" class="view">
+            <div class="view-header">
+                <h2><i class="ph ph-clipboard-text"></i> Suplències</h2>
+            </div>
+            <div id="suplencies-container" class="suplencies-container">
+                <div class="loading">Carregant suplències...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
