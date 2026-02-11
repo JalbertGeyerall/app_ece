@@ -906,17 +906,30 @@ function renderitzarSuplencies(suplencies, container) {
 }
 
 function mostrarDetallSuplencia(sup) {
-    const [dia, mes] = sup.data.split('/');
-    document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${sup.dia} ${dia}/${mes}`;
+    // Extreure només dd/mm de la data (pot venir com "Wed Feb 11 2026..." o "11/02/2026")
+    let diaFormat = '';
+    if (sup.data.includes('/')) {
+        const parts = sup.data.split('/');
+        diaFormat = `${parts[0]}/${parts[1]}`;
+    } else {
+        // Si ve en altre format, intentar extreure dia/mes
+        const match = sup.data.match(/(\d{1,2})[\/\-\s](\d{1,2})/);
+        if (match) {
+            diaFormat = `${match[1]}/${match[2]}`;
+        } else {
+            diaFormat = sup.data.substring(0, 10);
+        }
+    }
+    document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${sup.dia} ${diaFormat}`;
     
     let html = `
         <table class="schedule-table suplencies-table">
             <colgroup>
-                <col style="width:60px">
+                <col style="width:70px">
                 <col style="width:80px">
-                <col style="width:140px">
-                <col style="width:140px">
-                <col style="width:auto">
+                <col style="min-width:80px">
+                <col style="min-width:80px">
+                <col style="width:40%">
             </colgroup>
             <thead>
                 <tr>
