@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.jalbertgeyerall.twa",
+      "sha256_cert_fingerprints": [
+        "D0:A9:0F:7F:D3:ED:BA:80:CC:38:B8:63:C2:08:01:C1:2E:B3:FE:88:A9:1B:7E:73:62:0E:23:48:D9:DD:CD:EA"
+      ]
+    }
+  }
+]
