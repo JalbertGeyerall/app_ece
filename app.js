@@ -910,13 +910,13 @@ function mostrarDetallSuplencia(sup) {
     document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${sup.dia} ${dia}/${mes}`;
     
     let html = `
-        <table class="schedule-table">
+        <table class="schedule-table suplencies-table">
             <colgroup>
+                <col style="width:60px">
                 <col style="width:80px">
-                <col style="width:100px">
-                <col style="width:auto">
                 <col style="width:140px">
-                <col style="width:200px">
+                <col style="width:140px">
+                <col style="width:auto">
             </colgroup>
             <thead>
                 <tr>

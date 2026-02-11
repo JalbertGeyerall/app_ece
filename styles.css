@@ -651,6 +651,22 @@ body {
 /* ── SUPLÈNCIES ───────────────────────────────────────────────────── */
 .suplencies-container { margin-top: 10px; }
 
+/* Taula específica de suplències dins el modal */
+.suplencies-table {
+    table-layout: fixed; /* Força que les columnes respectin l'ample definit */
+}
+
+.suplencies-table td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal; /* Permet salts de línia */
+    vertical-align: top; /* Alinear al principi de la cel·la */
+}
+
+.suplencies-table th {
+    white-space: nowrap; /* Capçaleres sense trencar */
+}
+
 .sup-dia-group {
     margin-bottom: 16px;
     border: 1px solid var(--border);
