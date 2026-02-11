@@ -737,7 +737,7 @@ function parsejarSuplencies(csvText, container) {
             if (cols[4] && cols[4].includes('DATA:')) {
                 const diaMatch = cols[4].match(/DATA:\s*(\w+)/i);
                 if (diaMatch) {
-                    diaActual = diaMatch[1].trim();
+                    diaActual = diaMatch[1].trim().toUpperCase();
                 }
             }
             
@@ -748,7 +748,15 @@ function parsejarSuplencies(csvText, container) {
             if (i < linies.length) {
                 const nextCols = splitCSV(linies[i]);
                 if (nextCols[4]) {
-                    dataActual = nextCols[4].trim();
+                    const dataRaw = nextCols[4].trim();
+                    // Intentar extreure dd/mm/yyyy del format que sigui
+                    const dataMatch = dataRaw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    if (dataMatch) {
+                        dataActual = `${dataMatch[1]}/${dataMatch[2]}/${dataMatch[3]}`;
+                    } else {
+                        // Si no té barres, provar amb altres formats
+                        dataActual = dataRaw;
+                    }
                     console.log('📅 Data:', dataActual);
                 }
             }
@@ -841,8 +849,7 @@ function renderitzarSuplencies(suplencies, container) {
         // Format: dia dd/mm (sense any ni hora)
         const [dia, mes] = data.split('/');
         const dataFormatada = `${dia}/${mes}`;
-        // Extreure només la primera paraula del dia (DIMARTS, DIMECRES, etc)
-        const diaSetmana = sups[0].dia.split(' ')[0]; 
+        const diaSetmana = sups[0].dia; // Ja ve net (DIMARTS, DIMECRES...)
         
         html += `
             <div class="sup-dia-group">
@@ -907,22 +914,11 @@ function renderitzarSuplencies(suplencies, container) {
 }
 
 function mostrarDetallSuplencia(sup) {
-    // Extreure només dd/mm de la data (pot venir com "Wed Feb 11 2026..." o "11/02/2026")
-    let diaFormat = '';
-    if (sup.data.includes('/')) {
-        const parts = sup.data.split('/');
-        diaFormat = `${parts[0]}/${parts[1]}`;
-    } else {
-        // Si ve en altre format, intentar extreure dia/mes
-        const match = sup.data.match(/(\d{1,2})[\/\-\s](\d{1,2})/);
-        if (match) {
-            diaFormat = `${match[1]}/${match[2]}`;
-        } else {
-            diaFormat = sup.data.substring(0, 10);
-        }
-    }
-    // Extreure només la primera paraula del dia (DIMARTS, DIMECRES, etc)
-    const diaSetmana = sup.dia.split(' ')[0];
+    // La data ja ve neta com dd/mm/yyyy
+    const [dia, mes] = sup.data.split('/');
+    const diaFormat = `${dia}/${mes}`;
+    // El dia ja ve net (DIMARTS, DIMECRES...)
+    const diaSetmana = sup.dia;
     document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${diaSetmana} ${diaFormat}`;
     
     let html = `
