@@ -841,7 +841,8 @@ function renderitzarSuplencies(suplencies, container) {
         // Format: dia dd/mm (sense any ni hora)
         const [dia, mes] = data.split('/');
         const dataFormatada = `${dia}/${mes}`;
-        const diaSetmana = sups[0].dia; // DIMARTS, DIMECRES...
+        // Extreure només la primera paraula del dia (DIMARTS, DIMECRES, etc)
+        const diaSetmana = sups[0].dia.split(' ')[0]; 
         
         html += `
             <div class="sup-dia-group">
@@ -920,7 +921,9 @@ function mostrarDetallSuplencia(sup) {
             diaFormat = sup.data.substring(0, 10);
         }
     }
-    document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${sup.dia} ${diaFormat}`;
+    // Extreure només la primera paraula del dia (DIMARTS, DIMECRES, etc)
+    const diaSetmana = sup.dia.split(' ')[0];
+    document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${diaSetmana} ${diaFormat}`;
     
     let html = `
         <table class="schedule-table suplencies-table">
