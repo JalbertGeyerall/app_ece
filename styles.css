@@ -644,9 +644,8 @@ body {
     display: table-row;
 }
 
-.optativa-detall td {
-    padding-left: 30px !important;
-    opacity: 0.85;
+.optativa-detall td:first-child {
+    padding-left: 20px !important; /* Indentació per mostrar jerarquia */
 }
 
 /* ── SUPLÈNCIES ───────────────────────────────────────────────────── */

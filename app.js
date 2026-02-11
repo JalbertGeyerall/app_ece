@@ -541,8 +541,7 @@ function seleccionarCurs(curs) {
                     : '';
                 files += `
                     <tr class="${cls} optativa-detall" data-group="${rowId}">
-                        <td></td>
-                        <td></td>
+                        <td colspan="2"></td>
                         <td>${entry.materia}</td>
                         <td class="td-prof">${entry.professor}</td>
                         <td class="td-email">${emailBtn}</td>
