@@ -475,13 +475,13 @@ body {
     hyphens: auto; /* Afegir guions si cal */
 }
 
-/* Amplades de columnes en percentatges - s'adapten a la pantalla */
-.schedule-table col.col-dia   { width: 10%; min-width: 40px; }
-.schedule-table col.col-hora  { width: 12%; min-width: 50px; }
-.schedule-table col.col-curs  { width: 15%; min-width: 70px; }
-.schedule-table col.col-classe { width: 33%; } /* Amplada reduïda per matèria */
-.schedule-table col.col-prof  { width: 24%; min-width: 100px; } /* Més espai per professor */
-.schedule-table col.col-email { width: 6%; min-width: 40px; } /* Columna icona email més ampla */
+/* Amplades de columnes - email fixa, resta percentatges */
+.schedule-table col.col-dia   { width: 10%; }
+.schedule-table col.col-hora  { width: 12%; }
+.schedule-table col.col-curs  { width: 15%; }
+.schedule-table col.col-classe { width: auto; } /* S'adapta al que queda */
+.schedule-table col.col-prof  { width: 26%; }
+.schedule-table col.col-email { width: 42px; } /* Amplada fixa per icona */
 
 /* Capçalera de taula: percentatge del color 2 */
 .schedule-table thead tr th {
@@ -810,13 +810,13 @@ body {
     .schedule-table thead tr th { font-size: 9px; }
     .schedule-table tbody td { font-size: 12px; }
     
-    /* Columnes més estretes en mòbil */
-    .schedule-table col.col-dia   { width: 11%; min-width: 35px; }
-    .schedule-table col.col-hora  { width: 13%; min-width: 45px; }
-    .schedule-table col.col-curs  { width: 16%; min-width: 60px; }
-    .schedule-table col.col-classe { width: 26%; } /* Matèria reduïda */
-    .schedule-table col.col-prof  { width: 26%; min-width: 90px; }
-    .schedule-table col.col-email { width: 8%; min-width: 35px; }
+    /* Columnes més estretes en mòbil - email segueix fixa */
+    .schedule-table col.col-dia   { width: 11%; }
+    .schedule-table col.col-hora  { width: 13%; }
+    .schedule-table col.col-curs  { width: 16%; }
+    .schedule-table col.col-classe { width: auto; } /* S'adapta */
+    .schedule-table col.col-prof  { width: 28%; }
+    .schedule-table col.col-email { width: 38px; } /* Lleugerament més petita en mòbil */
 
     .header-titles h1 { font-size: 16px; }
 }
