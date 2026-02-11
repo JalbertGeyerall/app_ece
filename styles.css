@@ -457,27 +457,31 @@ body {
 
 .schedule-table {
     width: 100%;
+    max-width: 100%; /* No excedir pantalla */
+    table-layout: fixed; /* Forçar amplades de columnes */
     border-collapse: collapse;
-    min-width: 100%; /* No forçar amplada mínima */
-    font-size: 13px; /* Font més petita */
+    font-size: 13px;
 }
 
 .schedule-table thead tr th {
-    font-size: 10px; /* Capçalera encara més petita */
+    font-size: 10px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .schedule-table tbody td {
     font-size: 13px;
-    white-space: nowrap; /* Evitar salts de línia */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Afegir ... si no cap */
 }
 
-/* Amplades fixes de columnes */
-.schedule-table col.col-dia   { width: 45px; }
-.schedule-table col.col-hora  { width: 55px; }
-.schedule-table col.col-curs  { width: 80px; }
-.schedule-table col.col-classe { width: auto; }
-.schedule-table col.col-prof  { width: 140px; } /* Nova columna professor estretta */
+/* Amplades de columnes en percentatges - s'adapten a la pantalla */
+.schedule-table col.col-dia   { width: 10%; min-width: 40px; }
+.schedule-table col.col-hora  { width: 12%; min-width: 50px; }
+.schedule-table col.col-curs  { width: 15%; min-width: 70px; }
+.schedule-table col.col-classe { width: auto; } /* S'adapta */
+.schedule-table col.col-prof  { width: 28%; min-width: 120px; }
 
 /* Capçalera de taula: percentatge del color 2 */
 .schedule-table thead tr th {
@@ -793,9 +797,18 @@ body {
 
     .selector-grid { grid-template-columns: 1fr; }
 
-    .schedule-table { font-size: 13px; }
+    .schedule-table { font-size: 12px; }
     .schedule-table thead tr th,
-    .schedule-table tbody td { padding: 8px 10px; }
+    .schedule-table tbody td { padding: 8px 4px; }
+    
+    .schedule-table thead tr th { font-size: 9px; }
+    .schedule-table tbody td { font-size: 12px; }
+    
+    /* Columnes més estretes en mòbil */
+    .schedule-table col.col-dia   { width: 11%; min-width: 35px; }
+    .schedule-table col.col-hora  { width: 13%; min-width: 45px; }
+    .schedule-table col.col-curs  { width: 16%; min-width: 60px; }
+    .schedule-table col.col-prof  { width: 30%; min-width: 100px; }
 
     .header-titles h1 { font-size: 16px; }
 }
