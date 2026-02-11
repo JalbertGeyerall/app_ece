@@ -1,75 +1,101 @@
-# 📚 App de Horarios de Profesores
+# 📚 Eina Cap Estudis - Horaris SMA
 
-Una aplicación web para consultar horarios de profesores de forma rápida y sencilla.
+Aplicació web per consultar horaris de professors i alumnes de l'escola Santa Maria dels Apòstols.
 
-## 🚀 Cómo usar la app en tu móvil
+## 🚀 Funcionalitats
 
-### Opción 1: Probar en el navegador (MÁS RÁPIDO)
+- **Qui fa classe ara?** - Consulta automàtica de classes en curs
+- **Qui fa classe / hora?** - Cercar per dia i hora específics
+- **Horari Professor** - Veure horari complet de qualsevol professor
+- **Horari Curs** - Consultar horari d'un curs amb optatives desplegables
+- **Suplències** - Llistat de suplències actualitzat diàriament
 
-1. Abre VS Code en la carpeta del proyecto
-2. Instala la extensión "Live Server" en VS Code
-3. Haz clic derecho en `index.html` → "Open with Live Server"
-4. En tu móvil, abre el navegador y ve a la IP que te muestra (ej: http://192.168.1.100:5500)
-5. ¡Ya funciona! Puedes añadirla a tu pantalla de inicio
+## 💾 Dades
 
-### Opción 2: Convertir a APK (APP NATIVA)
+- **Horaris:** Google Sheets publicat com CSV (caché localStorage)
+- **Suplències:** Apps Script que concatena totes les pestanyes
+- **Actualització:** Automàtica cada cop que s'obre l'app
 
-#### Método A: PWA Builder (más fácil, gratis)
-1. Sube tu proyecto a GitHub o a un hosting gratuito como Netlify
-2. Ve a https://www.pwabuilder.com/
-3. Introduce la URL de tu app
-4. Descarga el APK para Android
-5. Instala el APK en tu móvil
+## 🎨 Tecnologies
 
-#### Método B: Capacitor (más profesional)
-1. Instala Node.js desde https://nodejs.org
-2. Abre una terminal en la carpeta del proyecto
-3. Ejecuta estos comandos:
-```bash
-npm install -g @capacitor/cli
-npm init -y
-npm install @capacitor/core @capacitor/android
-npx cap init "Horarios" "com.tuescuela.horarios" --web-dir .
-npx cap add android
-npx cap copy
-npx cap open android
+- HTML5 + CSS3 + Vanilla JavaScript
+- PWA (Progressive Web App)
+- Icones: Phosphor Icons
+- Tipografia: Playfair Display + DM Sans
+
+## 📱 Instal·lació
+
+### Web
+Simplement obre `index.html` en un navegador modern.
+
+### Android APK
+1. Puja els fitxers a un servidor web o GitHub Pages
+2. Usa [PWA Builder](https://www.pwabuilder.com/) per generar l'APK
+3. Instal·la l'APK directament (no cal Play Store)
+
+## 📂 Estructura
+
 ```
-4. En Android Studio, genera el APK
+/
+├── index.html          # Interfície principal
+├── styles.css          # Estils i paleta corporativa
+├── app.js              # Lògica de l'aplicació
+├── horarios.csv        # Horaris locals (fallback)
+├── manifest.json       # Config PWA
+└── README.md
+```
 
-## 📱 Funcionalidades
+## 🔧 Configuració
 
-- **¿Quién da clase AHORA?**: Detecta automáticamente la hora actual y muestra qué profesores están dando clase
-- **Buscar profesor**: Encuentra un profesor por nombre
-- **Buscar por materia**: Encuentra todas las clases de una materia específica
-- **Buscar por curso**: Encuentra todos los profesores que dan clase a un curso
+### URL dels horaris
+Edita `app.js` línia 8:
+```javascript
+const CSV_URL = 'URL_DEL_TEU_GOOGLE_SHEET';
+```
 
-## 📂 Archivos del proyecto
+### URL de suplències
+Edita `app.js` línia 9:
+```javascript
+const SUPLENCIES_URL = 'URL_DEL_TEU_APPS_SCRIPT';
+```
 
-- `index.html` - Estructura de la app
-- `styles.css` - Diseño visual
-- `app.js` - Lógica y funcionalidad
-- `horarios.csv` - Datos de horarios (actualízalo cuando cambie el horario)
-- `manifest.json` - Configuración para instalar como app
+### Apps Script per suplències
+```javascript
+function doGet() {
+  const ss = SpreadsheetApp.openById('ID_DEL_SHEET');
+  const sheets = ss.getSheets();
+  let csvContent = '';
+  
+  for (const sheet of sheets) {
+    const data = sheet.getDataRange().getValues();
+    for (const row of data) {
+      csvContent += row.map(cell => {
+        const str = String(cell);
+        return str.includes(',') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
+      }).join(',') + '\n';
+    }
+    csvContent += '\n\n';
+  }
+  
+  return ContentService.createTextOutput(csvContent).setMimeType(ContentService.MimeType.TEXT);
+}
+```
 
-## 🔄 Actualizar los horarios
+Desplegar com a **Aplicació web** amb accés **Qualsevol persona**.
 
-Simplemente reemplaza el archivo `horarios.csv` con el nuevo archivo exportado de tu hoja de cálculo.
+## 🎨 Paleta de colors
 
-## 💡 Consejos
+- **Granat** (#7B1C2E) - Capçalera
+- **Or** (#E8B84B) - Logo i accents
+- **Gris** (#888888) - Subcapçaleres
+- **Antracita** (#2C2C3A) - Textos
+- **Blau pissarra** (#4A90A4) - Dies senars
+- **Verd sàlvia** (#5D8A6A) - Dies parells
 
-- La app funciona offline una vez cargada
-- Puedes añadirla a la pantalla de inicio desde el navegador
-- Funciona en cualquier dispositivo (móvil, tablet, ordenador)
-- No necesita conexión a internet después de la primera carga
+## 📄 Llicència
 
-## 🆘 Problemas comunes
-
-**No carga los datos**: Asegúrate de que `horarios.csv` está en la misma carpeta que `index.html`
-
-**No se ve bien en el móvil**: Asegúrate de usar Live Server o un servidor web, no abras el archivo directamente
-
-**Quiero cambiar los colores**: Edita el archivo `styles.css` en la sección `:root`
+© 2025 Santa Maria dels Apòstols. Tots els drets reservats.
 
 ---
 
-Creado con ❤️ para facilitar la consulta de horarios
+Desenvolupat amb ❤️ per l'escola SMA
