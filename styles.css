@@ -452,7 +452,7 @@ body {
 
 /* ── TAULES ───────────────────────────────────────────────────────── */
 .card-body {
-    overflow-x: auto;
+    overflow-x: hidden; /* No permetre scroll horitzontal */
 }
 
 .schedule-table {
@@ -479,9 +479,9 @@ body {
 .schedule-table col.col-dia   { width: 10%; min-width: 40px; }
 .schedule-table col.col-hora  { width: 12%; min-width: 50px; }
 .schedule-table col.col-curs  { width: 15%; min-width: 70px; }
-.schedule-table col.col-classe { width: 35%; } /* Amplada reduïda per matèria */
+.schedule-table col.col-classe { width: 33%; } /* Amplada reduïda per matèria */
 .schedule-table col.col-prof  { width: 24%; min-width: 100px; } /* Més espai per professor */
-.schedule-table col.col-email { width: 4%; min-width: 32px; } /* Columna icona email */
+.schedule-table col.col-email { width: 6%; min-width: 40px; } /* Columna icona email més ampla */
 
 /* Capçalera de taula: percentatge del color 2 */
 .schedule-table thead tr th {
@@ -814,9 +814,9 @@ body {
     .schedule-table col.col-dia   { width: 11%; min-width: 35px; }
     .schedule-table col.col-hora  { width: 13%; min-width: 45px; }
     .schedule-table col.col-curs  { width: 16%; min-width: 60px; }
-    .schedule-table col.col-classe { width: 28%; } /* Matèria reduïda */
+    .schedule-table col.col-classe { width: 26%; } /* Matèria reduïda */
     .schedule-table col.col-prof  { width: 26%; min-width: 90px; }
-    .schedule-table col.col-email { width: 6%; min-width: 28px; }
+    .schedule-table col.col-email { width: 8%; min-width: 35px; }
 
     .header-titles h1 { font-size: 16px; }
 }
