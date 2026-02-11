@@ -512,7 +512,8 @@ function seleccionarCurs(curs) {
                     <td>${diaCat}</td>
                     <td>${e.hora}</td>
                     <td>${e.materia}</td>
-                    <td class="td-prof">${e.professor}${emailBtn}</td>
+                    <td class="td-prof">${e.professor}</td>
+                    <td class="td-email">${emailBtn}</td>
                 </tr>`;
         }
         
@@ -530,6 +531,7 @@ function seleccionarCurs(curs) {
                     <td>${e.hora}</td>
                     <td>OPTATIVA (${optatives.length})</td>
                     <td class="td-prof" style="text-align:right"><span class="optativa-toggle"></span></td>
+                    <td class="td-email"></td>
                 </tr>`;
             
             // Files de detall
@@ -542,7 +544,8 @@ function seleccionarCurs(curs) {
                         <td></td>
                         <td></td>
                         <td>${entry.materia}</td>
-                        <td class="td-prof">${entry.professor}${emailBtn}</td>
+                        <td class="td-prof">${entry.professor}</td>
+                        <td class="td-email">${emailBtn}</td>
                     </tr>`;
             }
         }
@@ -563,6 +566,7 @@ function seleccionarCurs(curs) {
                         <col class="col-hora">
                         <col style="width:auto">
                         <col class="col-prof">
+                        <col class="col-email">
                     </colgroup>
                     <thead>
                         <tr>
@@ -570,6 +574,7 @@ function seleccionarCurs(curs) {
                             <th>Hora</th>
                             <th>Matèria</th>
                             <th>Professor/a</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>${files}</tbody>
