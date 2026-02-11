@@ -604,9 +604,10 @@ body {
 .btn-mail-sm:hover { background: var(--c2-10); }
 
 .td-prof {
-    white-space: nowrap;
     font-size: 13px;
     text-align: right;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Files optatives expandibles */
