@@ -458,14 +458,26 @@ body {
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 360px;
+    min-width: 100%; /* No forçar amplada mínima */
+    font-size: 13px; /* Font més petita */
+}
+
+.schedule-table thead tr th {
+    font-size: 10px; /* Capçalera encara més petita */
+    white-space: nowrap;
+}
+
+.schedule-table tbody td {
+    font-size: 13px;
+    white-space: nowrap; /* Evitar salts de línia */
 }
 
 /* Amplades fixes de columnes */
-.schedule-table col.col-dia   { width: 100px; }
-.schedule-table col.col-hora  { width: 70px; }
-.schedule-table col.col-curs  { width: 100px; }
+.schedule-table col.col-dia   { width: 45px; }
+.schedule-table col.col-hora  { width: 55px; }
+.schedule-table col.col-curs  { width: 80px; }
 .schedule-table col.col-classe { width: auto; }
+.schedule-table col.col-prof  { width: 140px; } /* Nova columna professor estretta */
 
 /* Capçalera de taula: percentatge del color 2 */
 .schedule-table thead tr th {

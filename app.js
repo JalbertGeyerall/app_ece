@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 const DIES     = ['DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES','DISSABTE'];
 const DIES_CAT = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+const DIES_ABR = ['DIL','DIM','DIX','DIJ','DIV','DIS']; // Abreviatures
 const HORES    = ['8:00','9:00','10:00','11:30','12:30','13:30','15:00','16:00','17:00','18:30','19:30','20:30'];
 
 // Llista de tots els cursos vàlids (incloent optatives)
@@ -34,7 +35,8 @@ const DIA_CLASS = {
 };
 
 // Només excloure coses que no volen veure MAI (ni a horari professor ni a res)
-const EXCLOSOS_TOTALS = ['Guàrdia', 'Reunió', 'Sindicat', 'Atenció Pares'];
+// Array buit = mostrar tot
+const EXCLOSOS_TOTALS = [];
 
 let dades = [];
 let csvCachedText = null;
@@ -107,9 +109,10 @@ function configurarVistes() {
     document.getElementById('input-hora-prof').addEventListener('input', buscarPerHora);
     configurarInputAmbDesplegable('input-hora-prof', buscarPerHora);
 
-    // Vista PROFESSOR
-    configurarInputAmbDesplegable('input-professor', () => {
-        cercarProfessor(document.getElementById('input-professor').value);
+    // Vista PROFESSOR - ara és un select
+    document.getElementById('sel-professor').addEventListener('change', () => {
+        const nom = document.getElementById('sel-professor').value;
+        if (nom) cercarProfessor(nom);
     });
 
     // Vista CURS
@@ -151,11 +154,30 @@ function omplirDatalistProfessors() {
         .filter(n => n && /^[A-ZÀ-ÿ]/.test(n)) // Només noms que comencin per lletra
         .sort();
     
-    ['list-professors-ara', 'list-professors-hora', 'list-professors-all'].forEach(id => {
+    ['list-professors-ara', 'list-professors-hora'].forEach(id => {
         const dl = document.getElementById(id);
         if (!dl) return;
         dl.innerHTML = noms.map(n => `<option value="${n}">`).join('');
     });
+    
+    // Omplir també el selector de professors
+    omplirSelectorProfessors();
+}
+
+function omplirSelectorProfessors() {
+    const noms = dades
+        .map(p => p.nom)
+        .filter(n => n && /^[A-ZÀ-ÿ]/.test(n))
+        .sort();
+    
+    const sel = document.getElementById('sel-professor');
+    sel.innerHTML = '<option value="">Selecciona un professor...</option>';
+    for (const nom of noms) {
+        const opt = document.createElement('option');
+        opt.value = nom;
+        opt.textContent = nom;
+        sel.appendChild(opt);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -272,6 +294,9 @@ function splitCSV(linia) {
 }
 
 function esExclos(t) {
+    // Si no hi ha exclusions, no excloure res
+    if (EXCLOSOS_TOTALS.length === 0) return false;
+    
     // Si comença amb un curs vàlid, NO excloure (és una classe real)
     const comencaAmbCurs = CURSOS_VALIDS.some(curs => t.startsWith(curs));
     if (comencaAmbCurs) return false;
@@ -337,7 +362,7 @@ function buscarAra() {
         classes: [p.horari.find(h => h.dia === diaActual && h.hora === horaActual)]
     }));
 
-    const badge = `<div class="time-badge"><i class="ph ph-clock"></i>${DIES_CAT[dIdx]} · ${horaActual}h · ${professors.length} professor${professors.length !== 1 ? 's' : ''}</div>`;
+    const badge = `<div class="time-badge"><i class="ph ph-clock"></i>${DIES_ABR[dIdx]} · ${horaActual}h · ${professors.length} professor${professors.length !== 1 ? 's' : ''}</div>`;
     document.getElementById('results-ara').innerHTML = badge + resultats.map(r => crearCard(r.professor, r.classes)).join('');
 }
 
@@ -377,26 +402,22 @@ function buscarPerHora() {
         classes: [p.horari.find(h => h.dia === dia && h.hora === hora)]
     }));
 
-    const badge = `<div class="time-badge"><i class="ph ph-calendar-blank"></i>${DIES_CAT[DIES.indexOf(dia)]} · ${hora}h · ${professors.length} professor${professors.length !== 1 ? 's' : ''}</div>`;
+    const badge = `<div class="time-badge"><i class="ph ph-calendar-blank"></i>${DIES_ABR[DIES.indexOf(dia)]} · ${hora}h · ${professors.length} professor${professors.length !== 1 ? 's' : ''}</div>`;
     document.getElementById('results-hora').innerHTML = badge + resultats.map(r => crearCard(r.professor, r.classes)).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
 // VISTA: HORARI PROFESSOR
 // ═══════════════════════════════════════════════════════════════
-function cercarProfessor(query) {
-    const q = query.toLowerCase().trim();
-    if (q.length < 2) { document.getElementById('results-professor').innerHTML = ''; return; }
-
-    const professors = dades.filter(p => p.nom.toLowerCase().includes(q));
-
-    if (professors.length === 0) {
-        renderEmpty('results-professor', 'ph-user-x', `No s'ha trobat cap professor amb "${query}"`);
+function cercarProfessor(nom) {
+    const professor = dades.find(p => p.nom === nom);
+    
+    if (!professor) {
+        renderEmpty('results-professor', 'ph-user-x', `No s'ha trobat el professor "${nom}"`);
         return;
     }
 
-    document.getElementById('results-professor').innerHTML =
-        professors.map(p => crearCard(p, p.horari)).join('');
+    document.getElementById('results-professor').innerHTML = crearCard(professor, professor.horari);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -481,7 +502,7 @@ function seleccionarCurs(curs) {
         // Processar normals primer
         for (const e of normals) {
             const dIdx = DIES.indexOf(e.dia);
-            const diaCat = DIES_CAT[dIdx] || e.dia;
+            const diaCat = DIES_ABR[dIdx] || e.dia; // Usar abreviatura
             const cls = DIA_CLASS[e.dia] || '';
             const emailBtn = e.email
                 ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
@@ -499,7 +520,7 @@ function seleccionarCurs(curs) {
         if (optatives.length > 0) {
             const e = optatives[0];
             const dIdx = DIES.indexOf(e.dia);
-            const diaCat = DIES_CAT[dIdx] || e.dia;
+            const diaCat = DIES_ABR[dIdx] || e.dia; // Usar abreviatura
             const cls = DIA_CLASS[e.dia] || '';
             const rowId = `opt-${idCounter++}`;
             
@@ -541,7 +562,7 @@ function seleccionarCurs(curs) {
                         <col class="col-dia">
                         <col class="col-hora">
                         <col style="width:auto">
-                        <col style="width:180px">
+                        <col class="col-prof">
                     </colgroup>
                     <thead>
                         <tr>
@@ -577,7 +598,7 @@ function crearCard(professor, classes) {
     let files = '';
     for (const c of classes) {
         const dIdx   = DIES.indexOf(c.dia);
-        const diaCat = DIES_CAT[dIdx] || c.dia;
+        const diaCat = DIES_ABR[dIdx] || c.dia; // Usar abreviatura
         const cls    = DIA_CLASS[c.dia] || '';
         const cursText    = c.curs || '—';
         const materiaText = c.curs ? c.materia : c.classe;

@@ -141,8 +141,9 @@
             <div class="filter-row">
                 <div class="input-wrap">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="input-professor" placeholder="Escriu el nom del professor..." autocomplete="off" list="list-professors-all">
-                    <datalist id="list-professors-all"></datalist>
+                    <select id="sel-professor" style="flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;padding:13px 0;background:transparent;color:var(--text);cursor:pointer;">
+                        <option value="">Selecciona un professor...</option>
+                    </select>
                 </div>
             </div>
             <div id="results-professor" class="results"></div>
@@ -181,12 +182,5 @@
     </main>
 
     <script src="app.js"></script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(() => console.log('Service Worker registrado'))
-      .catch(err => console.log('Error:', err));
-  }
-</script>
 </body>
 </html>
