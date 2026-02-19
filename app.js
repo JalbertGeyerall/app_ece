@@ -873,7 +873,10 @@ function renderitzarSuplencies(suplencies, container) {
         <div id="sup-modal" class="sup-modal">
             <div class="sup-modal-content">
                 <div class="sup-modal-header">
-                    <h3 id="sup-modal-title"></h3>
+                    <div class="sup-modal-title-group">
+                        <h3 id="sup-modal-title"></h3>
+                        <a id="sup-modal-mail" class="btn-mail-sup-title" style="display:none" title="Enviar correu"><i class="ph ph-envelope-simple"></i></a>
+                    </div>
                     <button class="sup-modal-close">✕</button>
                 </div>
                 <div class="sup-modal-body" id="sup-modal-body"></div>
@@ -913,6 +916,13 @@ function renderitzarSuplencies(suplencies, container) {
     }
 }
 
+function trobarEmailProfessor(nom) {
+    if (!nom) return null;
+    const nomNet = nom.trim().toLowerCase();
+    const prof = dades.find(p => p.nom.trim().toLowerCase() === nomNet);
+    return prof ? prof.email : null;
+}
+
 function mostrarDetallSuplencia(sup) {
     // La data ja ve neta com dd/mm/yyyy
     const [dia, mes] = sup.data.split('/');
@@ -920,6 +930,17 @@ function mostrarDetallSuplencia(sup) {
     // El dia ja ve net (DIMARTS, DIMECRES...)
     const diaSetmana = sup.dia;
     document.getElementById('sup-modal-title').textContent = `${sup.professor} - ${diaSetmana} ${diaFormat}`;
+
+    // Icona mail al títol
+    const mailLink = document.getElementById('sup-modal-mail');
+    const emailTitol = trobarEmailProfessor(sup.professor);
+    if (emailTitol) {
+        mailLink.href = `mailto:${emailTitol}`;
+        mailLink.title = `Enviar correu a ${sup.professor}`;
+        mailLink.style.display = 'inline-flex';
+    } else {
+        mailLink.style.display = 'none';
+    }
     
     let html = `
         <table class="schedule-table suplencies-table">
@@ -944,12 +965,16 @@ function mostrarDetallSuplencia(sup) {
         const notaBtn = c.indicacions && c.indicacions.trim()
             ? `<button class="sup-nota-btn" title="Veure indicació" data-nota="${indicacionsEscaped}"><i class="ph ph-note"></i></button>`
             : '';
+        const emailFila = trobarEmailProfessor(c.professor);
+        const mailBtn = emailFila
+            ? `<a class="btn-mail-sm" href="mailto:${emailFila}" title="Enviar correu a ${c.professor}"><i class="ph ph-envelope-simple"></i></a>`
+            : '';
         html += `
             <tr>
                 <td>${c.hora}</td>
                 <td>${c.curs}</td>
                 <td>${c.materia}</td>
-                <td class="sup-professor-cell">${c.professor}${notaBtn}</td>
+                <td class="sup-professor-cell">${c.professor}${mailBtn}${notaBtn}</td>
             </tr>`;
     }
 
