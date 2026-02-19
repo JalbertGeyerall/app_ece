@@ -19,7 +19,7 @@ const CURSOS_VALIDS = [
 ];
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTF0rfPNnGvkEOcNAMxbloLrznYFDON-PbsKVkSkcbYFU-T4hvyXS-2MWbb9Yjw_AzNs1g3Rx_0F2Ny/pub?gid=1079228131&single=true&output=csv';
-const SUPLENCIES_URL = 'https://script.google.com/macros/s/AKfycbwo6wIvxqFE3LTpxgYIXlEibO-l38T9bHByJda9zHgbWk8UfOlZ8XL1KJHkCAdB7hcJ/exec';
+const SUPLENCIES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1u8KL1jS-vEbAK_oaFzj5o0L506j3ObyIT41zZEQbKCKQbgl3eyrP8CnbXiiCrCiuMu2t4HhOWJ2U/pub?gid=1734135219&single=true&output=csv';
 const CACHE_KEY = 'horaris_csv_cache';
 const CACHE_TIMESTAMP_KEY = 'horaris_csv_timestamp';
 const SUPLENCIES_CACHE_KEY = 'suplencies_cache';
