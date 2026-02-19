@@ -927,8 +927,7 @@ function mostrarDetallSuplencia(sup) {
                 <col style="width:70px">
                 <col style="width:80px">
                 <col style="min-width:80px">
-                <col style="min-width:80px">
-                <col style="width:40%">
+                <col>
             </colgroup>
             <thead>
                 <tr>
@@ -936,25 +935,43 @@ function mostrarDetallSuplencia(sup) {
                     <th>Curs</th>
                     <th>Matèria</th>
                     <th>Professor</th>
-                    <th>Indicacions</th>
                 </tr>
             </thead>
             <tbody>`;
-    
+
     for (const c of sup.classes) {
+        const indicacionsEscaped = c.indicacions ? c.indicacions.replace(/'/g, "&#39;").replace(/"/g, '&quot;') : '';
+        const notaBtn = c.indicacions && c.indicacions.trim()
+            ? `<button class="sup-nota-btn" title="Veure indicació" data-nota="${indicacionsEscaped}"><i class="ph ph-note"></i></button>`
+            : '';
         html += `
             <tr>
                 <td>${c.hora}</td>
                 <td>${c.curs}</td>
                 <td>${c.materia}</td>
-                <td>${c.professor}</td>
-                <td>${c.indicacions}</td>
+                <td class="sup-professor-cell">${c.professor}${notaBtn}</td>
             </tr>`;
     }
-    
+
     html += `</tbody></table>`;
-    
-    document.getElementById('sup-modal-body').innerHTML = html;
+
+    const modalBody = document.getElementById('sup-modal-body');
+    modalBody.innerHTML = html;
+
+    // Listeners per als botons de nota
+    modalBody.querySelectorAll('.sup-nota-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const text = btn.getAttribute('data-nota');
+            const overlay = document.createElement('div');
+            overlay.className = 'sup-nota-overlay';
+            overlay.innerHTML = `
+                <button class="sup-nota-back"><i class="ph ph-arrow-left"></i> Tornar</button>
+                <div class="sup-nota-text">${text}</div>`;
+            overlay.querySelector('.sup-nota-back').addEventListener('click', () => overlay.remove());
+            modalBody.appendChild(overlay);
+        });
+    });
+
     document.getElementById('sup-modal').classList.add('active');
 }
 

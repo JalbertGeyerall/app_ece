@@ -794,6 +794,71 @@ body {
 .sup-modal-body {
     padding: 20px;
     overflow-y: auto;
+    position: relative;
+}
+
+.sup-professor-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sup-nota-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--c1);
+    font-size: 17px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.75;
+    transition: opacity 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+
+.sup-nota-btn:hover {
+    opacity: 1;
+    background: rgba(123,28,46,0.10);
+}
+
+.sup-nota-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    z-index: 10;
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+
+.sup-nota-back {
+    align-self: flex-start;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+    transition: background 0.15s;
+}
+
+.sup-nota-back:hover {
+    background: var(--surface-alt, rgba(0,0,0,0.05));
+}
+
+.sup-nota-text {
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--text);
 }
 
 .empty-state {
