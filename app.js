@@ -787,14 +787,19 @@ function obtenirOcupatsPerData(dataStr) {
 
 function tipusGuardia(materia) {
     const m = (materia || '').toLowerCase().trim();
-    const esGuardia    = m.includes('guardia') || m.includes('guàrdia');
-    const esPermanencia = m.includes('permanencia') || m.includes('permanència');
-    if (esGuardia) return 'G';
-    if (esPermanencia) {
-        // Si a part de "permanencia" hi ha més text, afegir *
-        const netejat = m.replace(/permanènc[ia]+/i, '').replace(/permanenci[a]+/i, '').trim();
+    const mOrig = (materia || '').trim();
+    if (m.includes('guardia') || m.includes('guàrdia')) return 'G';
+    if (m.includes('permanencia') || m.includes('permanència')) {
+        const netejat = mOrig.replace(/permanèn[^ ]*/i, '').replace(/permanen[^ ]*/i, '').trim();
         return netejat.length > 0 ? 'P*' : 'P';
     }
+    if (m.startsWith('acollida eso')) return 'AE';
+    if (m.startsWith('acollida ep'))  return 'Ae';
+    if (m.startsWith('acollida'))     return 'AE';
+    if (m === 'caei')                 return 'C';
+    if (m === 'ad')                   return 'AD';
+    if (m.startsWith('atenció pares') || m.startsWith('atencio pares')) return 'AP';
+    if (m.startsWith('qualitat'))     return 'Q';
     return '?';
 }
 
@@ -843,29 +848,32 @@ function renderTaulaGuardies(entrades, ocupats = new Map()) {
                 : '';
             files += `
                 <tr class="${cls}">
-                    <td>${i === 0 ? diaCat : ''}</td>
-                    <td>${i === 0 ? hora : ''}</td>
-                    <td class="td-prof"${ratllat}>${e.professor}${ocupatBadge}</td>
-                    <td class="col-tipus"${ratllat}>${tipus}</td>
-                    <td class="td-email">${emailBtn}</td>
+                    <td class="gtd-dia">${i === 0 ? diaCat : ''}</td>
+                    <td class="gtd-hora">${i === 0 ? hora : ''}</td>
+                    <td class="gtd-prof"${ratllat}>${e.professor}</td>
+                    <td class="gtd-ocupat">${ocupatBadge}</td>
+                    <td class="gtd-tipus"${ratllat}>${tipus}</td>
+                    <td class="gtd-mail">${emailBtn}</td>
                 </tr>`;
         });
     }
 
     return `
-        <table class="schedule-table">
+        <table class="schedule-table guardies-table">
             <colgroup>
-                <col class="col-dia">
-                <col class="col-hora">
-                <col class="col-prof">
-                <col style="width:30px;text-align:center">
-                <col class="col-email">
+                <col style="width:36px">
+                <col style="width:36px">
+                <col style="width:auto">
+                <col style="width:56px">
+                <col style="width:24px">
+                <col style="width:24px">
             </colgroup>
             <thead>
                 <tr>
                     <th>Dia</th>
                     <th>Hora</th>
                     <th>Professor/a</th>
+                    <th></th>
                     <th title="G=Guàrdia P=Permanència P*=Permanència especial">T</th>
                     <th></th>
                 </tr>
@@ -875,14 +883,20 @@ function renderTaulaGuardies(entrades, ocupats = new Map()) {
 }
 
 function mostrarGuardies() {
-    const PARAULES_GUARDIA = ['guardia', 'guàrdia', 'permanencia', 'permanència'];
+    const PARAULES_GUARDIA = [
+        'guardia', 'guàrdia', 'permanencia', 'permanència',
+        'acollida', 'caei', 'atenció pares', 'atencio pares', 'qualitat'
+    ];
+    const CLASSES_EXACTES = ['ad'];
 
     // Recollir totes les entrades
     const totes = [];
     for (const p of dades) {
         for (const h of p.horari) {
-            const materiaLow = (h.materia || h.classe || '').toLowerCase();
-            if (PARAULES_GUARDIA.some(w => materiaLow.includes(w))) {
+            const materiaLow = (h.materia || h.classe || '').toLowerCase().trim();
+            const coincideix = PARAULES_GUARDIA.some(w => materiaLow.includes(w))
+                            || CLASSES_EXACTES.includes(materiaLow);
+            if (coincideix) {
                 totes.push({ ...h, professor: p.nom, email: p.email });
             }
         }
