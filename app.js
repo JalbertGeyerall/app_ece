@@ -101,7 +101,7 @@ function anarA(vista) {
     document.getElementById(`view-${vista}`).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (vista === 'ara') buscarAra();
-    if (vista === 'guardies') mostrarGardies();
+    if (vista === 'guardies') mostrarGuardies();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -664,29 +664,25 @@ function renderEmpty(containerId, icon, text) {
 // ═══════════════════════════════════════════════════════════════
 // GUÀRDIES
 // ═══════════════════════════════════════════════════════════════
-function mostrarGardies() {
-    const PARAULES_GUARDIA = ['guardia', 'guàrdia', 'permanencia', 'permanència'];
+function tipusGuardia(materia) {
+    const m = (materia || '').toLowerCase().trim();
+    const esGuardia    = m.includes('guardia') || m.includes('guàrdia');
+    const esPermanencia = m.includes('permanencia') || m.includes('permanència');
+    if (esGuardia) return 'G';
+    if (esPermanencia) {
+        // Si a part de "permanencia" hi ha més text, afegir *
+        const netejat = m.replace(/permanènc[ia]+/i, '').replace(/permanenci[a]+/i, '').trim();
+        return netejat.length > 0 ? 'P*' : 'P';
+    }
+    return '?';
+}
+
+function renderTaulaGuardies(entrades) {
+    if (entrades.length === 0) return '<p class="guardies-buit">Cap guàrdia o permanència en aquest moment</p>';
 
     const ordre = {};
     DIES.forEach((d, i) => ordre[d] = i);
 
-    // Recollir totes les entrades que siguin guàrdia o permanència
-    const entrades = [];
-    for (const p of dades) {
-        for (const h of p.horari) {
-            const materiaLow = (h.materia || h.classe || '').toLowerCase();
-            if (PARAULES_GUARDIA.some(w => materiaLow.includes(w))) {
-                entrades.push({ ...h, professor: p.nom, email: p.email });
-            }
-        }
-    }
-
-    if (entrades.length === 0) {
-        renderEmpty('results-guardies', 'ph-shield-check', 'No s\'han trobat guàrdies ni permanències');
-        return;
-    }
-
-    // Ordenar per dia i hora
     entrades.sort((a, b) => {
         const dDiff = (ordre[a.dia] ?? 9) - (ordre[b.dia] ?? 9);
         if (dDiff !== 0) return dDiff;
@@ -695,7 +691,6 @@ function mostrarGardies() {
         return (ah * 60 + am) - (bh * 60 + bm);
     });
 
-    // Agrupar per dia+hora
     const grups = {};
     for (const e of entrades) {
         const clau = `${e.dia}-${e.hora}`;
@@ -714,47 +709,148 @@ function mostrarGardies() {
             const emailBtn = e.email
                 ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
                 : '';
+            const tipus = tipusGuardia(e.materia || e.classe);
             files += `
                 <tr class="${cls}">
                     <td>${i === 0 ? diaCat : ''}</td>
                     <td>${i === 0 ? hora : ''}</td>
                     <td class="td-prof">${e.professor}</td>
-                    <td>${e.materia || e.classe}</td>
+                    <td class="col-tipus">${tipus}</td>
                     <td class="td-email">${emailBtn}</td>
                 </tr>`;
         });
     }
 
-    document.getElementById('results-guardies').innerHTML = `
+    return `
+        <table class="schedule-table">
+            <colgroup>
+                <col class="col-dia">
+                <col class="col-hora">
+                <col class="col-prof">
+                <col style="width:30px;text-align:center">
+                <col class="col-email">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Dia</th>
+                    <th>Hora</th>
+                    <th>Professor/a</th>
+                    <th title="G=Guàrdia P=Permanència P*=Permanència especial">T</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>${files}</tbody>
+        </table>`;
+}
+
+function mostrarGuardies() {
+    const PARAULES_GUARDIA = ['guardia', 'guàrdia', 'permanencia', 'permanència'];
+
+    // Recollir totes les entrades
+    const totes = [];
+    for (const p of dades) {
+        for (const h of p.horari) {
+            const materiaLow = (h.materia || h.classe || '').toLowerCase();
+            if (PARAULES_GUARDIA.some(w => materiaLow.includes(w))) {
+                totes.push({ ...h, professor: p.nom, email: p.email });
+            }
+        }
+    }
+
+    if (totes.length === 0) {
+        renderEmpty('results-guardies', 'ph-shield-check', 'No s\'han trobat guàrdies ni permanències');
+        return;
+    }
+
+    // Calcular "ara"
+    const ara = new Date();
+    const dIdx = ara.getDay() - 1;
+    const diaAra = (dIdx >= 0 && dIdx <= 5) ? DIES[dIdx] : null;
+    const horaAra = trobarHoraActual(ara);
+
+    const entradesAra = diaAra && horaAra
+        ? totes.filter(e => e.dia === diaAra && e.hora === horaAra)
+        : [];
+
+    // Construir selectors de dia i hora únics
+    const diesDisponibles = [...new Set(totes.map(e => e.dia))].sort((a, b) => {
+        const ordre = {}; DIES.forEach((d, i) => ordre[d] = i);
+        return (ordre[a] ?? 9) - (ordre[b] ?? 9);
+    });
+    const horesDisponibles = [...new Set(totes.map(e => e.hora))].sort((a, b) => {
+        const [ah, am] = a.split(':').map(Number);
+        const [bh, bm] = b.split(':').map(Number);
+        return (ah * 60 + am) - (bh * 60 + bm);
+    });
+
+    const optionsDia = diesDisponibles.map(d => {
+        const dI = DIES.indexOf(d);
+        return `<option value="${d}">${DIES_CAT[dI] || d}</option>`;
+    }).join('');
+    const optionsHora = horesDisponibles.map(h => `<option value="${h}">${h}</option>`).join('');
+
+    // Secció "Ara"
+    const secAra = `
+        <div class="result-card guardies-ara-card">
+            <div class="card-head">
+                <div class="card-head-info">
+                    <h3><i class="ph ph-clock"></i> Ara${diaAra && horaAra ? ` · ${DIES_ABR[dIdx]} ${horaAra}h` : ''}</h3>
+                </div>
+            </div>
+            <div class="card-body" id="guardies-ara-body">
+                ${renderTaulaGuardies(entradesAra)}
+            </div>
+        </div>`;
+
+    // Secció filtre dia+hora
+    const secFiltre = `
         <div class="result-card">
             <div class="card-head">
                 <div class="card-head-info">
-                    <h3>Guàrdies i Permanències</h3>
-                    <span class="email-text">${entrades.length} entrades</span>
+                    <h3><i class="ph ph-funnel"></i> Filtrar per dia i hora</h3>
                 </div>
             </div>
             <div class="card-body">
-                <table class="schedule-table">
-                    <colgroup>
-                        <col class="col-dia">
-                        <col class="col-hora">
-                        <col class="col-prof">
-                        <col style="width:auto">
-                        <col class="col-email">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>Dia</th>
-                            <th>Hora</th>
-                            <th>Professor/a</th>
-                            <th>Tipus</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>${files}</tbody>
-                </table>
+                <div class="selector-grid" style="margin-bottom:16px">
+                    <div class="field-group">
+                        <label for="guardies-sel-dia">Dia</label>
+                        <select id="guardies-sel-dia">
+                            <option value="">Tots els dies</option>
+                            ${optionsDia}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="guardies-sel-hora">Hora</label>
+                        <select id="guardies-sel-hora">
+                            <option value="">Totes les hores</option>
+                            ${optionsHora}
+                        </select>
+                    </div>
+                </div>
+                <div id="guardies-filtre-body">
+                    ${renderTaulaGuardies(totes)}
+                </div>
             </div>
         </div>`;
+
+    document.getElementById('results-guardies').innerHTML = secAra + secFiltre;
+
+    // Listeners selectors
+    const selDia  = document.getElementById('guardies-sel-dia');
+    const selHora = document.getElementById('guardies-sel-hora');
+
+    function actualitzarFiltre() {
+        const dia  = selDia.value;
+        const hora = selHora.value;
+        const filtrades = totes.filter(e =>
+            (!dia  || e.dia  === dia) &&
+            (!hora || e.hora === hora)
+        );
+        document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades);
+    }
+
+    selDia.addEventListener('change', actualitzarFiltre);
+    selHora.addEventListener('change', actualitzarFiltre);
 }
 
 // ═══════════════════════════════════════════════════════════════
