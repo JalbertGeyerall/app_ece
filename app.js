@@ -101,6 +101,7 @@ function anarA(vista) {
     document.getElementById(`view-${vista}`).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (vista === 'ara') buscarAra();
+    if (vista === 'gardies') mostrarGardies();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -657,6 +658,104 @@ function renderEmpty(containerId, icon, text) {
         <div class="empty-state">
             <i class="ph ph-${icon}"></i>
             <p>${text}</p>
+        </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GUÀRDIES
+// ═══════════════════════════════════════════════════════════════
+function mostrarGardies() {
+    anarA('gardies');
+
+    const PARAULES_GUARDIA = ['guardia', 'guàrdia', 'permanencia', 'permanència'];
+
+    const ordre = {};
+    DIES.forEach((d, i) => ordre[d] = i);
+
+    // Recollir totes les entrades que siguin guàrdia o permanència
+    const entrades = [];
+    for (const p of dades) {
+        for (const h of p.horari) {
+            const materiaLow = (h.materia || h.classe || '').toLowerCase();
+            if (PARAULES_GUARDIA.some(w => materiaLow.includes(w))) {
+                entrades.push({ ...h, professor: p.nom, email: p.email });
+            }
+        }
+    }
+
+    if (entrades.length === 0) {
+        renderEmpty('results-gardies', 'ph-shield-check', 'No s\'han trobat guàrdies ni permanències');
+        return;
+    }
+
+    // Ordenar per dia i hora
+    entrades.sort((a, b) => {
+        const dDiff = (ordre[a.dia] ?? 9) - (ordre[b.dia] ?? 9);
+        if (dDiff !== 0) return dDiff;
+        const [ah, am] = a.hora.split(':').map(Number);
+        const [bh, bm] = b.hora.split(':').map(Number);
+        return (ah * 60 + am) - (bh * 60 + bm);
+    });
+
+    // Agrupar per dia+hora
+    const grups = {};
+    for (const e of entrades) {
+        const clau = `${e.dia}-${e.hora}`;
+        if (!grups[clau]) grups[clau] = { dia: e.dia, hora: e.hora, professors: [] };
+        grups[clau].professors.push(e);
+    }
+
+    let files = '';
+    for (const clau in grups) {
+        const { dia, hora, professors } = grups[clau];
+        const dIdx = DIES.indexOf(dia);
+        const diaCat = DIES_ABR[dIdx] || dia;
+        const cls = DIA_CLASS[dia] || '';
+
+        professors.forEach((e, i) => {
+            const emailBtn = e.email
+                ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
+                : '';
+            files += `
+                <tr class="${cls}">
+                    <td>${i === 0 ? diaCat : ''}</td>
+                    <td>${i === 0 ? hora : ''}</td>
+                    <td class="td-prof">${e.professor}</td>
+                    <td>${e.materia || e.classe}</td>
+                    <td class="td-email">${emailBtn}</td>
+                </tr>`;
+        });
+    }
+
+    document.getElementById('results-gardies').innerHTML = `
+        <div class="result-card">
+            <div class="card-head">
+                <div class="card-head-info">
+                    <h3>Guàrdies i Permanències</h3>
+                    <span class="email-text">${entrades.length} entrades</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="schedule-table">
+                    <colgroup>
+                        <col class="col-dia">
+                        <col class="col-hora">
+                        <col class="col-prof">
+                        <col style="width:auto">
+                        <col class="col-email">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Hora</th>
+                            <th>Professor/a</th>
+                            <th>Tipus</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>${files}</tbody>
+                </table>
+            </div>
         </div>`;
 }
 
