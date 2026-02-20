@@ -360,7 +360,10 @@ function extreureMateriaRaw(c) {
 function omplirSelectorAra() {
     const sel = document.getElementById('input-ara');
     if (!sel || sel.options.length > 1) return; // ja omplert
-    const noms = dades.map(p => p.nom).sort((a, b) => a.localeCompare(b));
+    const noms = dades
+        .map(p => p.nom)
+        .filter(nom => nom && nom.trim().length > 1 && /[a-zA-ZàáâãäåæçèéêëìíîïðñòóôõöùúûüýÀ-Ö]/.test(nom))
+        .sort((a, b) => a.localeCompare(b));
     noms.forEach(nom => {
         const opt = document.createElement('option');
         opt.value = nom;
@@ -700,6 +703,52 @@ function renderEmpty(containerId, icon, text) {
 // ═══════════════════════════════════════════════════════════════
 // GUÀRDIES
 // ═══════════════════════════════════════════════════════════════
+// Retorna un Set de "nom-hora" dels professors suplents per una data concreta (dd/mm/yyyy)
+function obtenirOcupatsPerData(dataStr) {
+    const ocupats = new Set();
+    if (!suplenciesCache || !dataStr) return ocupats;
+    // Convertir input date (yyyy-mm-dd) a dd/mm/yyyy
+    let dataCerca = dataStr;
+    if (dataStr.includes('-')) {
+        const [y, m, d] = dataStr.split('-');
+        dataCerca = `${d}/${m}/${y}`;
+    }
+    const linies = suplenciesCache.split('\n');
+    let dataActual = null;
+    let i = 0;
+    while (i < linies.length) {
+        const linia = linies[i].trim();
+        if (!linia) { i++; continue; }
+        const cols = splitCSV(linia);
+        if (cols[0] && cols[0].includes('SUBSTITUCIÓ DE:')) {
+            i++;
+            if (i < linies.length) {
+                const nextCols = splitCSV(linies[i]);
+                if (nextCols[4]) {
+                    const dataRaw = nextCols[4].trim();
+                    const dataMatch = dataRaw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    dataActual = dataMatch ? `${dataMatch[1]}/${dataMatch[2]}/${dataMatch[3]}` : dataRaw;
+                }
+            }
+            i += 2; // saltar capçaleres
+            while (i < linies.length) {
+                const hl = linies[i].trim();
+                if (!hl) { i++; break; }
+                const hc = splitCSV(hl);
+                if (hc[0] && hc[0].includes('SUBSTITUCIÓ DE:')) break;
+                if (dataActual === dataCerca && hc[0] && hc[0].match(/^\d{1,2}:\d{2}$/) && hc[3]) {
+                    // hc[3] és el professor suplent
+                    ocupats.add(`${hc[3].trim()}-${hc[0].trim()}`);
+                }
+                i++;
+            }
+            continue;
+        }
+        i++;
+    }
+    return ocupats;
+}
+
 function tipusGuardia(materia) {
     const m = (materia || '').toLowerCase().trim();
     const esGuardia    = m.includes('guardia') || m.includes('guàrdia');
@@ -713,7 +762,7 @@ function tipusGuardia(materia) {
     return '?';
 }
 
-function renderTaulaGuardies(entrades) {
+function renderTaulaGuardies(entrades, ocupats = new Set()) {
     if (entrades.length === 0) return '<p class="guardies-buit">Cap guàrdia o permanència en aquest moment</p>';
 
     const ordre = {};
@@ -746,12 +795,15 @@ function renderTaulaGuardies(entrades) {
                 ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
                 : '';
             const tipus = tipusGuardia(e.materia || e.classe);
+            const ocupat = ocupats.has(`${e.professor}-${e.hora}`);
+            const ratllat = ocupat ? ' class="guardia-ocupada"' : '';
+            const ocupatBadge = ocupat ? ' <span class="guardia-ocupat-badge" title="Ja té suplència assignada">ocupat</span>' : '';
             files += `
                 <tr class="${cls}">
                     <td>${i === 0 ? diaCat : ''}</td>
                     <td>${i === 0 ? hora : ''}</td>
-                    <td class="td-prof">${e.professor}</td>
-                    <td class="col-tipus">${tipus}</td>
+                    <td class="td-prof"${ratllat}>${e.professor}${ocupatBadge}</td>
+                    <td class="col-tipus"${ratllat}>${tipus}</td>
                     <td class="td-email">${emailBtn}</td>
                 </tr>`;
         });
@@ -849,11 +901,8 @@ function mostrarGuardies() {
             <div class="card-body">
                 <div class="guardies-selectors-row">
                     <div class="field-group">
-                        <label for="guardies-sel-dia">Dia</label>
-                        <select id="guardies-sel-dia">
-                            <option value="">Tots</option>
-                            ${optionsDia}
-                        </select>
+                        <label for="guardies-sel-data">Data</label>
+                        <input type="date" id="guardies-sel-data" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:var(--r-md);font-family:'DM Sans',sans-serif;font-size:14px;">
                     </div>
                     <div class="field-group">
                         <label for="guardies-sel-hora">Hora</label>
@@ -872,23 +921,36 @@ function mostrarGuardies() {
     document.getElementById('results-guardies').innerHTML = secAra + secFiltre;
 
     // Listeners selectors
-    const selDia  = document.getElementById('guardies-sel-dia');
+    const selData = document.getElementById('guardies-sel-data');
     const selHora = document.getElementById('guardies-sel-hora');
     const araCard = document.getElementById('guardies-ara-body').closest('.guardies-ara-card');
 
     function actualitzarFiltre() {
-        const dia  = selDia.value;
-        const hora = selHora.value;
+        const dataVal = selData.value; // yyyy-mm-dd o buit
+        const hora    = selHora.value;
+
+        // Calcular dia de la setmana a partir de la data triada
+        let diaSetmana = '';
+        if (dataVal) {
+            const [y, m, d] = dataVal.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            const idx = date.getDay() - 1; // 0=dilluns
+            diaSetmana = (idx >= 0 && idx <= 5) ? DIES[idx] : '';
+        }
+
         const filtrades = totes.filter(e =>
-            (!dia  || e.dia  === dia) &&
-            (!hora || e.hora === hora)
+            (!diaSetmana || e.dia === diaSetmana) &&
+            (!hora       || e.hora === hora)
         );
-        document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades);
+
+        const ocupats = obtenirOcupatsPerData(dataVal);
+        document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades, ocupats);
+
         // Ocultar secció Ara si hi ha algun filtre actiu
-        if (araCard) araCard.style.display = (dia || hora) ? 'none' : '';
+        if (araCard) araCard.style.display = (dataVal || hora) ? 'none' : '';
     }
 
-    selDia.addEventListener('change', actualitzarFiltre);
+    selData.addEventListener('change', actualitzarFiltre);
     selHora.addEventListener('change', actualitzarFiltre);
 }
 

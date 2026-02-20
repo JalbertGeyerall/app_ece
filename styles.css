@@ -906,6 +906,24 @@ body {
     flex: 1;
 }
 
+.guardia-ocupada {
+    text-decoration: line-through;
+    color: var(--text-secondary, #aaa);
+}
+
+.guardia-ocupat-badge {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #e53e3e;
+    color: white;
+    border-radius: 4px;
+    padding: 1px 5px;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
 .guardies-buit {
     padding: 16px;
     color: var(--text-secondary, #888);
