@@ -88,6 +88,12 @@ function configurarNav() {
     document.querySelectorAll('.action-btn[data-view]').forEach(btn => {
         btn.addEventListener('click', () => anarA(btn.dataset.view));
     });
+
+    document.querySelectorAll('.action-btn[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.dataset.action === 'suplencies') mostrarSuplencies();
+        });
+    });
 }
 
 function anarA(vista) {
