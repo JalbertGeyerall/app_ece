@@ -922,6 +922,65 @@ body {
     padding: 1px 5px;
     vertical-align: middle;
     text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.guardia-ocupat-badge:hover {
+    background: #c53030;
+}
+
+.guardies-seguent-card .card-head {
+    background: #5a5a8a;
+}
+
+.guardies-seguent-card .card-head h3 {
+    color: white;
+}
+
+.guardia-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.guardia-popup-inner {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    max-width: 340px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.guardia-popup-inner p {
+    margin: 8px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.guardia-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.08);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .guardies-buit {

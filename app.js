@@ -703,24 +703,35 @@ function renderEmpty(containerId, icon, text) {
 // ═══════════════════════════════════════════════════════════════
 // GUÀRDIES
 // ═══════════════════════════════════════════════════════════════
-// Retorna un Set de "nom-hora" dels professors suplents per una data concreta (dd/mm/yyyy)
+// Retorna un Map de "nom-hora" → {profAbsent, curs, materia} per una data concreta
+// dataStr pot ser yyyy-mm-dd o dd/mm/yyyy o null (data d'avui)
 function obtenirOcupatsPerData(dataStr) {
-    const ocupats = new Set();
-    if (!suplenciesCache || !dataStr) return ocupats;
-    // Convertir input date (yyyy-mm-dd) a dd/mm/yyyy
+    const ocupats = new Map();
+    if (!suplenciesCache) return ocupats;
+
     let dataCerca = dataStr;
-    if (dataStr.includes('-')) {
-        const [y, m, d] = dataStr.split('-');
+    if (!dataCerca) {
+        // Avui
+        const ara = new Date();
+        const d = ara.getDate().toString().padStart(2,'0');
+        const m = (ara.getMonth()+1).toString().padStart(2,'0');
+        const y = ara.getFullYear();
         dataCerca = `${d}/${m}/${y}`;
+    } else if (dataCerca.includes('-')) {
+        const [y, mo, d] = dataCerca.split('-');
+        dataCerca = `${d}/${mo}/${y}`;
     }
+
     const linies = suplenciesCache.split('\n');
     let dataActual = null;
+    let profAbsent = null;
     let i = 0;
     while (i < linies.length) {
         const linia = linies[i].trim();
         if (!linia) { i++; continue; }
         const cols = splitCSV(linia);
         if (cols[0] && cols[0].includes('SUBSTITUCIÓ DE:')) {
+            profAbsent = cols[2] ? cols[2].trim() : '';
             i++;
             if (i < linies.length) {
                 const nextCols = splitCSV(linies[i]);
@@ -737,8 +748,12 @@ function obtenirOcupatsPerData(dataStr) {
                 const hc = splitCSV(hl);
                 if (hc[0] && hc[0].includes('SUBSTITUCIÓ DE:')) break;
                 if (dataActual === dataCerca && hc[0] && hc[0].match(/^\d{1,2}:\d{2}$/) && hc[3]) {
-                    // hc[3] és el professor suplent
-                    ocupats.add(`${hc[3].trim()}-${hc[0].trim()}`);
+                    const clau = `${hc[3].trim()}-${hc[0].trim()}`;
+                    ocupats.set(clau, {
+                        profAbsent: profAbsent,
+                        curs: hc[1] ? hc[1].trim() : '',
+                        materia: hc[2] ? hc[2].trim() : ''
+                    });
                 }
                 i++;
             }
@@ -795,9 +810,16 @@ function renderTaulaGuardies(entrades, ocupats = new Set()) {
                 ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
                 : '';
             const tipus = tipusGuardia(e.materia || e.classe);
-            const ocupat = ocupats.has(`${e.professor}-${e.hora}`);
+            const clauOcupat = `${e.professor}-${e.hora}`;
+            const infSup = ocupats.get(clauOcupat);
+            const ocupat = !!infSup;
             const ratllat = ocupat ? ' class="guardia-ocupada"' : '';
-            const ocupatBadge = ocupat ? ' <span class="guardia-ocupat-badge" title="Ja té suplència assignada">ocupat</span>' : '';
+            const dataOcupat = ocupat
+                ? `data-prof-absent="${(infSup.profAbsent||'').replace(/"/g,'&quot;')}" data-curs="${(infSup.curs||'').replace(/"/g,'&quot;')}" data-materia="${(infSup.materia||'').replace(/"/g,'&quot;')}"`
+                : '';
+            const ocupatBadge = ocupat
+                ? ` <button class="guardia-ocupat-badge" ${dataOcupat} title="Veure detall suplència">ocupat</button>`
+                : '';
             files += `
                 <tr class="${cls}">
                     <td>${i === 0 ? diaCat : ''}</td>
@@ -850,14 +872,27 @@ function mostrarGuardies() {
         return;
     }
 
-    // Calcular "ara"
+    // Calcular "ara" i "hora següent"
     const ara = new Date();
     const dIdx = ara.getDay() - 1;
     const diaAra = (dIdx >= 0 && dIdx <= 5) ? DIES[dIdx] : null;
     const horaAra = trobarHoraActual(ara);
 
+    // Hora següent: la primera hora de HORES que és posterior a horaAra
+    let horaSeguent = null;
+    if (horaAra) {
+        const idxHora = HORES.indexOf(horaAra);
+        if (idxHora >= 0 && idxHora < HORES.length - 1) horaSeguent = HORES[idxHora + 1];
+    }
+
+    const ocupatsAvui = obtenirOcupatsPerData(null); // null = avui
+
     const entradesAra = diaAra && horaAra
         ? totes.filter(e => e.dia === diaAra && e.hora === horaAra)
+        : [];
+
+    const entradesSeguent = diaAra && horaSeguent
+        ? totes.filter(e => e.dia === diaAra && e.hora === horaSeguent)
         : [];
 
     // Construir selectors de dia i hora únics
@@ -877,7 +912,7 @@ function mostrarGuardies() {
     }).join('');
     const optionsHora = horesDisponibles.map(h => `<option value="${h}">${h}</option>`).join('');
 
-    // Secció "Ara"
+    // Secció "Ara" + "Hora següent"
     const secAra = `
         <div class="result-card guardies-ara-card">
             <div class="card-head">
@@ -886,9 +921,20 @@ function mostrarGuardies() {
                 </div>
             </div>
             <div class="card-body" id="guardies-ara-body">
-                ${renderTaulaGuardies(entradesAra)}
+                ${renderTaulaGuardies(entradesAra, ocupatsAvui)}
             </div>
-        </div>`;
+        </div>
+        ${horaSeguent ? `
+        <div class="result-card guardies-ara-card guardies-seguent-card">
+            <div class="card-head">
+                <div class="card-head-info">
+                    <h3><i class="ph ph-clock-countdown"></i> Hora següent · ${DIES_ABR[dIdx]} ${horaSeguent}h</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                ${renderTaulaGuardies(entradesSeguent, ocupatsAvui)}
+            </div>
+        </div>` : ''}`;
 
     // Secció filtre dia+hora
     const secFiltre = `
@@ -948,10 +994,44 @@ function mostrarGuardies() {
 
         // Ocultar secció Ara si hi ha algun filtre actiu
         if (araCard) araCard.style.display = (dataVal || hora) ? 'none' : '';
+
+        // Listeners badges ocupat del filtre
+        afegirListenersBadges(document.getElementById('guardies-filtre-body'));
     }
 
     selData.addEventListener('change', actualitzarFiltre);
     selHora.addEventListener('change', actualitzarFiltre);
+
+    // Listeners badges ocupat de la secció Ara i Següent
+    afegirListenersBadges(document.getElementById('results-guardies'));
+}
+
+function afegirListenersBadges(container) {
+    if (!container) return;
+    container.querySelectorAll('.guardia-ocupat-badge').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const profAbsent = btn.getAttribute('data-prof-absent') || '—';
+            const curs       = btn.getAttribute('data-curs') || '—';
+            const materia    = btn.getAttribute('data-materia') || '—';
+
+            // Eliminar popup anterior si existeix
+            document.querySelectorAll('.guardia-popup').forEach(p => p.remove());
+
+            const popup = document.createElement('div');
+            popup.className = 'guardia-popup';
+            popup.innerHTML = `
+                <div class="guardia-popup-inner">
+                    <button class="guardia-popup-close">✕</button>
+                    <p><strong>Professor absent:</strong> ${profAbsent}</p>
+                    <p><strong>Curs:</strong> ${curs}</p>
+                    <p><strong>Matèria:</strong> ${materia}</p>
+                </div>`;
+            popup.querySelector('.guardia-popup-close').addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (ev) => { if (ev.target === popup) popup.remove(); });
+            document.body.appendChild(popup);
+        });
+    });
 }
 
 // ═══════════════════════════════════════════════════════════════
