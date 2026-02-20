@@ -282,8 +282,29 @@ async function carregarDades() {
     }
 }
 
+function unirLiniesCSV(text) {
+    // Unir línies que formen part d'un camp CSV multilínia (dins de cometes)
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+    for (const char of text) {
+        if (char === '"') insideQuotes = !insideQuotes;
+        if ((char === '\n' || char === '\r') && insideQuotes) {
+            current += ' '; // substituir salt de línia intern per espai
+        } else {
+            current += char;
+            if ((char === '\n') && !insideQuotes) {
+                result.push(current);
+                current = '';
+            }
+        }
+    }
+    if (current.trim()) result.push(current);
+    return result;
+}
+
 function parsejarCSV(text) {
-    const linies = text.split('\n').filter(l => l.trim());
+    const linies = unirLiniesCSV(text).filter(l => l.trim());
     for (let i = 2; i < linies.length; i++) {
         const cols = splitCSV(linies[i]);
         if (cols.length < 2) continue;
