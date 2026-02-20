@@ -96,11 +96,34 @@ function configurarNav() {
     });
 }
 
+const TITOLS_VISTES = {
+    home:       { titol: 'Eina Cap Estudis', sub: 'SMA 2025-26' },
+    ara:        { titol: 'Qui fa classe ara?', sub: null },
+    hora:       { titol: 'Qui fa classe / hora?', sub: null },
+    professor:  { titol: 'Horari Professor', sub: null },
+    curs:       { titol: 'Horari Curs', sub: null },
+    guardies:   { titol: 'Horari Guàrdies', sub: null },
+    suplencies: { titol: 'Suplències', sub: null },
+};
+
+function actualitzarTitolHeader(vista) {
+    const info = TITOLS_VISTES[vista] || TITOLS_VISTES.home;
+    document.getElementById('header-title').textContent = info.titol;
+    const sub = document.getElementById('header-sub');
+    if (info.sub) {
+        sub.textContent = info.sub;
+        sub.style.display = '';
+    } else {
+        sub.style.display = 'none';
+    }
+}
+
 function anarA(vista) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${vista}`).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (vista === 'ara') buscarAra();
+    actualitzarTitolHeader(vista);
+    if (vista === 'ara') { omplirSelectorAra(); buscarAra(); }
     if (vista === 'guardies') mostrarGuardies();
 }
 
@@ -334,8 +357,21 @@ function extreureMateriaRaw(c) {
 // ═══════════════════════════════════════════════════════════════
 // VISTA: QUI FA CLASSE ARA?
 // ═══════════════════════════════════════════════════════════════
+function omplirSelectorAra() {
+    const sel = document.getElementById('input-ara');
+    if (!sel || sel.options.length > 1) return; // ja omplert
+    const noms = dades.map(p => p.nom).sort((a, b) => a.localeCompare(b));
+    noms.forEach(nom => {
+        const opt = document.createElement('option');
+        opt.value = nom;
+        opt.textContent = nom;
+        sel.appendChild(opt);
+    });
+    sel.addEventListener('change', buscarAra);
+}
+
 function buscarAra() {
-    const filtre = document.getElementById('input-ara').value.toLowerCase().trim();
+    const filtre = document.getElementById('input-ara').value.trim();
     const ara    = new Date();
     const dIdx   = ara.getDay() - 1;
 
@@ -356,11 +392,11 @@ function buscarAra() {
         p.horari.some(h => h.dia === diaActual && h.hora === horaActual)
     );
 
-    if (filtre) professors = professors.filter(p => p.nom.toLowerCase().includes(filtre));
+    if (filtre) professors = professors.filter(p => p.nom === filtre);
 
     if (professors.length === 0) {
         renderEmpty('results-ara', 'ph-magnifying-glass',
-            filtre ? `Cap professor coincideix amb "${filtre}" ara` : 'Cap professor fa classe ara');
+            filtre ? `${filtre} no fa classe ara` : 'Cap professor fa classe ara');
         return;
     }
 
@@ -811,18 +847,18 @@ function mostrarGuardies() {
                 </div>
             </div>
             <div class="card-body">
-                <div class="selector-grid" style="margin-bottom:16px">
+                <div class="guardies-selectors-row">
                     <div class="field-group">
                         <label for="guardies-sel-dia">Dia</label>
                         <select id="guardies-sel-dia">
-                            <option value="">Tots els dies</option>
+                            <option value="">Tots</option>
                             ${optionsDia}
                         </select>
                     </div>
                     <div class="field-group">
                         <label for="guardies-sel-hora">Hora</label>
                         <select id="guardies-sel-hora">
-                            <option value="">Totes les hores</option>
+                            <option value="">Totes</option>
                             ${optionsHora}
                         </select>
                     </div>
@@ -838,6 +874,7 @@ function mostrarGuardies() {
     // Listeners selectors
     const selDia  = document.getElementById('guardies-sel-dia');
     const selHora = document.getElementById('guardies-sel-hora');
+    const araCard = document.getElementById('guardies-ara-body').closest('.guardies-ara-card');
 
     function actualitzarFiltre() {
         const dia  = selDia.value;
@@ -847,6 +884,8 @@ function mostrarGuardies() {
             (!hora || e.hora === hora)
         );
         document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades);
+        // Ocultar secció Ara si hi ha algun filtre actiu
+        if (araCard) araCard.style.display = (dia || hora) ? 'none' : '';
     }
 
     selDia.addEventListener('change', actualitzarFiltre);

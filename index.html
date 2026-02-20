@@ -23,8 +23,8 @@
             <div class="header-brand">
                 <button class="header-logo" id="btn-menu-logo" title="Menú">CE</button>
                 <div class="header-titles">
-                    <h1>Eina Cap Estudis</h1>
-                    <span class="header-sub">SMA 2025-26</span>
+                    <h1 id="header-title">Eina Cap Estudis</h1>
+                    <span class="header-sub" id="header-sub">SMA 2025-26</span>
                 </div>
             </div>
             <button id="btn-home" class="btn-home" title="Inici" aria-label="Inici">
@@ -78,14 +78,12 @@
 
         <!-- VISTA: QUI FA CLASSE ARA -->
         <section id="view-ara" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-clock"></i> Qui fa classe ara?</h2>
-            </div>
             <div class="filter-row">
                 <div class="input-wrap">
-                    <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="input-ara" placeholder="Filtrar per nom de professor (opcional)..." autocomplete="off" list="list-professors-ara">
-                    <datalist id="list-professors-ara"></datalist>
+                    <i class="ph ph-user"></i>
+                    <select id="input-ara" style="flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;padding:13px 0;background:transparent;color:var(--text);cursor:pointer;">
+                        <option value="">Tots els professors</option>
+                    </select>
                 </div>
             </div>
             <div id="results-ara" class="results"></div>
@@ -93,9 +91,6 @@
 
         <!-- VISTA: QUI FA CLASSE / HORA -->
         <section id="view-hora" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-calendar-blank"></i> Qui fa classe / hora?</h2>
-            </div>
             <div class="selector-grid">
                 <div class="field-group">
                     <label for="sel-dia">Dia</label>
@@ -141,9 +136,6 @@
 
         <!-- VISTA: HORARI PROFESSOR -->
         <section id="view-professor" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-user"></i> Horari Professor</h2>
-            </div>
             <div class="filter-row">
                 <div class="input-wrap">
                     <i class="ph ph-magnifying-glass"></i>
@@ -157,9 +149,6 @@
 
         <!-- VISTA: HORARI CURS -->
         <section id="view-curs" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-graduation-cap"></i> Horari Curs</h2>
-            </div>
 
             <!-- Selector desplegable -->
             <div class="filter-row">
@@ -177,17 +166,11 @@
 
         <!-- VISTA: GUÀRDIES -->
         <section id="view-guardies" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-shield-check"></i> Horari Guàrdies</h2>
-            </div>
             <div id="results-guardies" class="results"></div>
         </section>
 
         <!-- VISTA: SUPLÈNCIES -->
         <section id="view-suplencies" class="view">
-            <div class="view-header">
-                <h2><i class="ph ph-clipboard-text"></i> Suplències</h2>
-            </div>
             <div id="suplencies-container" class="suplencies-container">
                 <div class="loading">Carregant suplències...</div>
             </div>

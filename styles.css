@@ -888,11 +888,22 @@ body {
 }
 
 .col-tipus {
-    width: 28px;
+    width: 24px;
+    min-width: 24px;
     text-align: center;
     font-weight: 600;
     font-size: 13px;
     color: var(--c1);
+}
+
+.guardies-selectors-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.guardies-selectors-row .field-group {
+    flex: 1;
 }
 
 .guardies-buit {
