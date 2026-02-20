@@ -777,7 +777,7 @@ function tipusGuardia(materia) {
     return '?';
 }
 
-function renderTaulaGuardies(entrades, ocupats = new Set()) {
+function renderTaulaGuardies(entrades, ocupats = new Map()) {
     if (entrades.length === 0) return '<p class="guardies-buit">Cap guàrdia o permanència en aquest moment</p>';
 
     const ordre = {};
