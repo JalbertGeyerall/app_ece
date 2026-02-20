@@ -101,7 +101,7 @@ function anarA(vista) {
     document.getElementById(`view-${vista}`).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (vista === 'ara') buscarAra();
-    if (vista === 'gardies') mostrarGardies();
+    if (vista === 'guardies') mostrarGardies();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -665,8 +665,6 @@ function renderEmpty(containerId, icon, text) {
 // GUÀRDIES
 // ═══════════════════════════════════════════════════════════════
 function mostrarGardies() {
-    anarA('gardies');
-
     const PARAULES_GUARDIA = ['guardia', 'guàrdia', 'permanencia', 'permanència'];
 
     const ordre = {};
@@ -684,7 +682,7 @@ function mostrarGardies() {
     }
 
     if (entrades.length === 0) {
-        renderEmpty('results-gardies', 'ph-shield-check', 'No s\'han trobat guàrdies ni permanències');
+        renderEmpty('results-guardies', 'ph-shield-check', 'No s\'han trobat guàrdies ni permanències');
         return;
     }
 
@@ -727,7 +725,7 @@ function mostrarGardies() {
         });
     }
 
-    document.getElementById('results-gardies').innerHTML = `
+    document.getElementById('results-guardies').innerHTML = `
         <div class="result-card">
             <div class="card-head">
                 <div class="card-head-info">
