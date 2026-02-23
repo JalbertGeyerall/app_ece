@@ -803,8 +803,8 @@ function tipusGuardia(materia) {
     return '?';
 }
 
-const ORDRE_TIPUS  = ['G', 'P', 'P*', 'AE', 'Ae', 'AP', 'C', 'Q', 'AD', '?'];
-const TOTS_TIPUS   = ['G', 'P', 'P*', 'AE', 'Ae', 'AP', 'C', 'Q', 'AD'];
+const ORDRE_TIPUS  = ['G', 'P', 'P*', 'AE', 'Ae', 'AD', 'C', 'Q', 'AP', '?'];
+const TOTS_TIPUS   = ['G', 'P', 'P*', 'AE', 'Ae', 'AD', 'C', 'Q', 'AP'];
 const TIPUS_DEFECTE = new Set(['G', 'P', 'P*']);
 let tipusActius    = new Set(TIPUS_DEFECTE); // G, P i P* actius per defecte
 
