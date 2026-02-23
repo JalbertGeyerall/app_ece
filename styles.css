@@ -1028,6 +1028,41 @@ body {
     justify-content: center;
 }
 
+.guardies-tipus-filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+
+.guardia-tipus-btn {
+    width: 40px;
+    height: 32px;
+    padding: 0;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.guardia-tipus-btn.actiu {
+    background: var(--c1);
+    color: white;
+    border-color: var(--c1);
+}
+
+.guardia-tipus-btn:not(.actiu):hover {
+    border-color: var(--c1);
+    color: var(--c1);
+}
+
 .guardies-buit {
     padding: 16px;
     color: var(--text-secondary, #888);

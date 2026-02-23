@@ -803,59 +803,66 @@ function tipusGuardia(materia) {
     return '?';
 }
 
+const ORDRE_TIPUS  = ['G', 'P', 'P*', 'AE', 'Ae', 'AP', 'C', 'Q', 'AD', '?'];
+const TOTS_TIPUS   = ['G', 'P', 'P*', 'AE', 'Ae', 'AP', 'C', 'Q', 'AD'];
+const TIPUS_DEFECTE = new Set(['G', 'P', 'P*']);
+let tipusActius    = new Set(TIPUS_DEFECTE); // G, P i P* actius per defecte
+
 function renderTaulaGuardies(entrades, ocupats = new Map()) {
-    if (entrades.length === 0) return '<p class="guardies-buit">Cap guàrdia o permanència en aquest moment</p>';
+    // Filtrar per tipus actius
+    const filtrades = entrades.filter(e => {
+        const t = tipusGuardia(e.materia || e.classe);
+        return tipusActius.has(t);
+    });
 
-    const ordre = {};
-    DIES.forEach((d, i) => ordre[d] = i);
+    if (filtrades.length === 0) return '<p class="guardies-buit">Cap guàrdia o permanència en aquest moment</p>';
 
-    entrades.sort((a, b) => {
-        const dDiff = (ordre[a.dia] ?? 9) - (ordre[b.dia] ?? 9);
+    const ordreDia = {};
+    DIES.forEach((d, i) => ordreDia[d] = i);
+
+    filtrades.sort((a, b) => {
+        // Primer ordenar per tipus
+        const tA = tipusGuardia(a.materia || a.classe);
+        const tB = tipusGuardia(b.materia || b.classe);
+        const tDiff = (ORDRE_TIPUS.indexOf(tA) ?? 99) - (ORDRE_TIPUS.indexOf(tB) ?? 99);
+        if (tDiff !== 0) return tDiff;
+        // Després per dia
+        const dDiff = (ordreDia[a.dia] ?? 9) - (ordreDia[b.dia] ?? 9);
         if (dDiff !== 0) return dDiff;
+        // Després per hora
         const [ah, am] = a.hora.split(':').map(Number);
         const [bh, bm] = b.hora.split(':').map(Number);
         return (ah * 60 + am) - (bh * 60 + bm);
     });
 
-    const grups = {};
-    for (const e of entrades) {
-        const clau = `${e.dia}-${e.hora}`;
-        if (!grups[clau]) grups[clau] = { dia: e.dia, hora: e.hora, professors: [] };
-        grups[clau].professors.push(e);
-    }
-
     let files = '';
-    for (const clau in grups) {
-        const { dia, hora, professors } = grups[clau];
-        const dIdx = DIES.indexOf(dia);
-        const diaCat = DIES_ABR[dIdx] || dia;
-        const cls = DIA_CLASS[dia] || '';
-
-        professors.forEach((e, i) => {
-            const emailBtn = e.email
-                ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
-                : '';
-            const tipus = tipusGuardia(e.materia || e.classe);
-            const clauOcupat = `${e.professor}-${e.hora}`;
-            const infSup = ocupats.get(clauOcupat);
-            const ocupat = !!infSup;
-            const ratllat = ocupat ? ' class="guardia-ocupada"' : '';
-            const dataOcupat = ocupat
-                ? `data-prof-absent="${(infSup.profAbsent||'').replace(/"/g,'&quot;')}" data-curs="${(infSup.curs||'').replace(/"/g,'&quot;')}" data-materia="${(infSup.materia||'').replace(/"/g,'&quot;')}"`
-                : '';
-            const ocupatBadge = ocupat
-                ? ` <button class="guardia-ocupat-badge" ${dataOcupat} title="Veure detall suplència">ocupat</button>`
-                : '';
-            files += `
-                <tr class="${cls}">
-                    <td class="gtd-dia">${i === 0 ? diaCat : ''}</td>
-                    <td class="gtd-hora">${i === 0 ? hora : ''}</td>
-                    <td class="gtd-prof"${ratllat}>${e.professor}</td>
-                    <td class="gtd-ocupat">${ocupatBadge}</td>
-                    <td class="gtd-tipus"${ratllat}>${tipus}</td>
-                    <td class="gtd-mail">${emailBtn}</td>
-                </tr>`;
-        });
+    for (const e of filtrades) {
+        const dIdx = DIES.indexOf(e.dia);
+        const diaCat = DIES_ABR[dIdx] || e.dia;
+        const cls = DIA_CLASS[e.dia] || '';
+        const emailBtn = e.email
+            ? `<a class="btn-mail-sm" href="mailto:${e.email}" title="Enviar correu a ${e.professor}"><i class="ph ph-envelope-simple"></i></a>`
+            : '';
+        const tipus = tipusGuardia(e.materia || e.classe);
+        const clauOcupat = `${e.professor}-${e.hora}`;
+        const infSup = ocupats.get(clauOcupat);
+        const ocupat = !!infSup;
+        const ratllat = ocupat ? ' class="guardia-ocupada"' : '';
+        const dataOcupat = ocupat
+            ? `data-prof-absent="${(infSup.profAbsent||'').replace(/"/g,'&quot;')}" data-curs="${(infSup.curs||'').replace(/"/g,'&quot;')}" data-materia="${(infSup.materia||'').replace(/"/g,'&quot;')}"`
+            : '';
+        const ocupatBadge = ocupat
+            ? `<button class="guardia-ocupat-badge" ${dataOcupat} title="Veure detall suplència">ocupat</button>`
+            : '';
+        files += `
+            <tr class="${cls}">
+                <td class="gtd-dia">${diaCat}</td>
+                <td class="gtd-hora">${e.hora}</td>
+                <td class="gtd-prof"${ratllat}>${e.professor}</td>
+                <td class="gtd-ocupat">${ocupatBadge}</td>
+                <td class="gtd-tipus"${ratllat}>${tipus}</td>
+                <td class="gtd-mail">${emailBtn}</td>
+            </tr>`;
     }
 
     return `
@@ -947,8 +954,16 @@ function mostrarGuardies() {
     }).join('');
     const optionsHora = horesDisponibles.map(h => `<option value="${h}">${h}</option>`).join('');
 
+    // Botons de filtre per tipus
+    const botosTipus = TOTS_TIPUS.map(t => {
+        const actiu = TIPUS_DEFECTE.has(t) ? ' actiu' : '';
+        return `<button class="guardia-tipus-btn${actiu}" data-tipus="${t}">${t}</button>`;
+    }).join('');
+    const secBotosTipus = `<div class="guardies-tipus-filtres">${botosTipus}</div>`;
+
     // Secció "Ara" + "Hora següent"
     const secAra = `
+        ${secBotosTipus}
         <div class="result-card guardies-ara-card">
             <div class="card-head">
                 <div class="card-head-info">
@@ -966,7 +981,7 @@ function mostrarGuardies() {
                     <h3><i class="ph ph-clock-countdown"></i> Hora següent · ${DIES_ABR[dIdx]} ${horaSeguent}h</h3>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body" id="guardies-seguent-body">
                 ${renderTaulaGuardies(entradesSeguent, ocupatsAvui)}
             </div>
         </div>` : ''}`;
@@ -999,45 +1014,63 @@ function mostrarGuardies() {
             </div>
         </div>`;
 
+    tipusActius = new Set(TIPUS_DEFECTE); // reset cada vegada que s'obre la pantalla
     document.getElementById('results-guardies').innerHTML = secAra + secFiltre;
 
-    // Listeners selectors
     const selData = document.getElementById('guardies-sel-data');
     const selHora = document.getElementById('guardies-sel-hora');
     const araCard = document.getElementById('guardies-ara-body').closest('.guardies-ara-card');
 
-    function actualitzarFiltre() {
-        const dataVal = selData.value; // yyyy-mm-dd o buit
-        const hora    = selHora.value;
-
-        // Calcular dia de la setmana a partir de la data triada
-        let diaSetmana = '';
+    function regenerarTot() {
+        const dataVal    = selData.value;
+        const hora       = selHora.value;
+        let diaSetmana   = '';
         if (dataVal) {
             const [y, m, d] = dataVal.split('-').map(Number);
             const date = new Date(y, m - 1, d);
-            const idx = date.getDay() - 1; // 0=dilluns
+            const idx = date.getDay() - 1;
             diaSetmana = (idx >= 0 && idx <= 5) ? DIES[idx] : '';
         }
 
+        // Taula filtre
         const filtrades = totes.filter(e =>
             (!diaSetmana || e.dia === diaSetmana) &&
             (!hora       || e.hora === hora)
         );
-
-        const ocupats = obtenirOcupatsPerData(dataVal);
-        document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades, ocupats);
-
-        // Ocultar secció Ara si hi ha algun filtre actiu
-        if (araCard) araCard.style.display = (dataVal || hora) ? 'none' : '';
-
-        // Listeners badges ocupat del filtre
+        const ocupatsFiltre = obtenirOcupatsPerData(dataVal);
+        document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades, ocupatsFiltre);
         afegirListenersBadges(document.getElementById('guardies-filtre-body'));
+
+        // Taules Ara i Següent
+        const araBody = document.getElementById('guardies-ara-body');
+        const seguentBody = document.getElementById('guardies-seguent-body');
+        if (araBody) araBody.innerHTML = renderTaulaGuardies(entradesAra, ocupatsAvui);
+        if (seguentBody) seguentBody.innerHTML = renderTaulaGuardies(entradesSeguent, ocupatsAvui);
+        afegirListenersBadges(document.getElementById('results-guardies'));
+
+        // Ocultar secció Ara si hi ha filtre actiu
+        if (araCard) araCard.style.display = (dataVal || hora) ? 'none' : '';
     }
 
-    selData.addEventListener('change', actualitzarFiltre);
-    selHora.addEventListener('change', actualitzarFiltre);
+    selData.addEventListener('change', regenerarTot);
+    selHora.addEventListener('change', regenerarTot);
 
-    // Listeners badges ocupat de la secció Ara i Següent
+    // Listeners botons de tipus
+    document.querySelectorAll('.guardia-tipus-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const t = btn.dataset.tipus;
+            if (tipusActius.has(t)) {
+                tipusActius.delete(t);
+                btn.classList.remove('actiu');
+            } else {
+                tipusActius.add(t);
+                btn.classList.add('actiu');
+            }
+            regenerarTot();
+        });
+    });
+
+    // Listeners badges ocupat inicials
     afegirListenersBadges(document.getElementById('results-guardies'));
 }
 
