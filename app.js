@@ -821,18 +821,18 @@ function renderTaulaGuardies(entrades, ocupats = new Map()) {
     DIES.forEach((d, i) => ordreDia[d] = i);
 
     filtrades.sort((a, b) => {
-        // Primer ordenar per tipus
-        const tA = tipusGuardia(a.materia || a.classe);
-        const tB = tipusGuardia(b.materia || b.classe);
-        const tDiff = (ORDRE_TIPUS.indexOf(tA) ?? 99) - (ORDRE_TIPUS.indexOf(tB) ?? 99);
-        if (tDiff !== 0) return tDiff;
-        // Després per dia
+        // Primer per dia
         const dDiff = (ordreDia[a.dia] ?? 9) - (ordreDia[b.dia] ?? 9);
         if (dDiff !== 0) return dDiff;
         // Després per hora
         const [ah, am] = a.hora.split(':').map(Number);
         const [bh, bm] = b.hora.split(':').map(Number);
-        return (ah * 60 + am) - (bh * 60 + bm);
+        const hDiff = (ah * 60 + am) - (bh * 60 + bm);
+        if (hDiff !== 0) return hDiff;
+        // Finalment per tipus
+        const tA = tipusGuardia(a.materia || a.classe);
+        const tB = tipusGuardia(b.materia || b.classe);
+        return (ORDRE_TIPUS.indexOf(tA) ?? 99) - (ORDRE_TIPUS.indexOf(tB) ?? 99);
     });
 
     let files = '';
@@ -1041,11 +1041,12 @@ function mostrarGuardies() {
         document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades, ocupatsFiltre);
         afegirListenersBadges(document.getElementById('guardies-filtre-body'));
 
-        // Taules Ara i Següent
+        // Taules Ara i Següent (recalcular ocupats per si les suplències han carregat)
+        const ocupatsAvuiActual = obtenirOcupatsPerData(null);
         const araBody = document.getElementById('guardies-ara-body');
         const seguentBody = document.getElementById('guardies-seguent-body');
-        if (araBody) araBody.innerHTML = renderTaulaGuardies(entradesAra, ocupatsAvui);
-        if (seguentBody) seguentBody.innerHTML = renderTaulaGuardies(entradesSeguent, ocupatsAvui);
+        if (araBody) araBody.innerHTML = renderTaulaGuardies(entradesAra, ocupatsAvuiActual);
+        if (seguentBody) seguentBody.innerHTML = renderTaulaGuardies(entradesSeguent, ocupatsAvuiActual);
         afegirListenersBadges(document.getElementById('results-guardies'));
 
         // Ocultar secció Ara si hi ha filtre actiu
@@ -1072,6 +1073,31 @@ function mostrarGuardies() {
 
     // Listeners badges ocupat inicials
     afegirListenersBadges(document.getElementById('results-guardies'));
+
+    // Si les suplències no estaven carregades quan s'ha obert la pantalla,
+    // esperar que arribin i re-renderitzar les taules amb els ocupats correctes
+    if (!suplenciesCache) {
+        const interval = setInterval(() => {
+            if (suplenciesCache) {
+                clearInterval(interval);
+                // Recalcular ocupatsAvui amb les dades ja disponibles
+                const ocupatsActualitzats = obtenirOcupatsPerData(null);
+                const araBody = document.getElementById('guardies-ara-body');
+                const seguentBody = document.getElementById('guardies-seguent-body');
+                const filtreBody = document.getElementById('guardies-filtre-body');
+                if (araBody) {
+                    araBody.innerHTML = renderTaulaGuardies(entradesAra, ocupatsActualitzats);
+                }
+                if (seguentBody) {
+                    seguentBody.innerHTML = renderTaulaGuardies(entradesSeguent, ocupatsActualitzats);
+                }
+                if (filtreBody) {
+                    filtreBody.innerHTML = renderTaulaGuardies(totes, obtenirOcupatsPerData(selData.value));
+                }
+                afegirListenersBadges(document.getElementById('results-guardies'));
+            }
+        }, 300);
+    }
 }
 
 function afegirListenersBadges(container) {
