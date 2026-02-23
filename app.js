@@ -1037,7 +1037,8 @@ function mostrarGuardies() {
             (!diaSetmana || e.dia === diaSetmana) &&
             (!hora       || e.hora === hora)
         );
-        const ocupatsFiltre = obtenirOcupatsPerData(dataVal);
+        // Ocupats només si hi ha data concreta seleccionada
+        const ocupatsFiltre = dataVal ? obtenirOcupatsPerData(dataVal) : new Map();
         document.getElementById('guardies-filtre-body').innerHTML = renderTaulaGuardies(filtrades, ocupatsFiltre);
         afegirListenersBadges(document.getElementById('guardies-filtre-body'));
 
@@ -1092,7 +1093,8 @@ function mostrarGuardies() {
                     seguentBody.innerHTML = renderTaulaGuardies(entradesSeguent, ocupatsActualitzats);
                 }
                 if (filtreBody) {
-                    filtreBody.innerHTML = renderTaulaGuardies(totes, obtenirOcupatsPerData(selData.value));
+                    const ocupatsFiltrePoll = selData.value ? obtenirOcupatsPerData(selData.value) : new Map();
+                    filtreBody.innerHTML = renderTaulaGuardies(totes, ocupatsFiltrePoll);
                 }
                 afegirListenersBadges(document.getElementById('results-guardies'));
             }
