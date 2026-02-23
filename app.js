@@ -959,7 +959,13 @@ function mostrarGuardies() {
         const actiu = TIPUS_DEFECTE.has(t) ? ' actiu' : '';
         return `<button class="guardia-tipus-btn${actiu}" data-tipus="${t}">${t}</button>`;
     }).join('');
-    const secBotosTipus = `<div class="guardies-tipus-filtres">${botosTipus}</div>`;
+    const secBotosTipus = `
+        <div class="guardies-tipus-filtres">
+            <button class="guardia-sel-btn" id="btn-sel-tots" title="Activar tots"><i class="ph ph-check-square"></i></button>
+            <button class="guardia-sel-btn" id="btn-sel-cap" title="Desactivar tots"><i class="ph ph-square"></i></button>
+            <div class="guardies-tipus-separador"></div>
+            ${botosTipus}
+        </div>`;
 
     // Secció "Ara" + "Hora següent"
     const secAra = `
@@ -1070,6 +1076,18 @@ function mostrarGuardies() {
             }
             regenerarTot();
         });
+    });
+
+    // Listeners "tots" i "cap"
+    document.getElementById('btn-sel-tots')?.addEventListener('click', () => {
+        tipusActius = new Set(TOTS_TIPUS);
+        document.querySelectorAll('.guardia-tipus-btn').forEach(b => b.classList.add('actiu'));
+        regenerarTot();
+    });
+    document.getElementById('btn-sel-cap')?.addEventListener('click', () => {
+        tipusActius = new Set();
+        document.querySelectorAll('.guardia-tipus-btn').forEach(b => b.classList.remove('actiu'));
+        regenerarTot();
     });
 
     // Listeners badges ocupat inicials
